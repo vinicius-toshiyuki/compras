@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import 'shoppingList.dart';
+import 'shoppinglist/shoppinglist.dart';
+import 'shoppinglist/page.dart';
+import 'shoppinglist/widget.dart';
 import 'database.dart';
 
 void main() => runApp(ComprasApp());
 
 class ComprasApp extends StatelessWidget {
-	// This widget is the root of your application.
 	final String title = 'Compras';
 
 	@override
@@ -87,20 +88,19 @@ class _ComprasHomePageState extends State<ComprasHomePage> {
 			),
 			body: ReorderableListView(
 				onReorder: (oldIndex, newIndex) => setState(() {
-					int lowerIndex, upperIndex;
-					if(newIndex > oldIndex) {
-						if(newIndex == shoppingLists.length)
-							newIndex--;
-						lowerIndex = oldIndex;
-						upperIndex = newIndex;
-					} else {
-						lowerIndex = newIndex;
-						upperIndex = oldIndex;
-					}
-					shoppingLists
-						..insert(newIndex, shoppingLists.removeAt(oldIndex)..order = newIndex)
-						..where((list) => list.order > lowerIndex && list.order < upperIndex)
-						.forEach((list) => list.order++);
+					final moved = shoppingLists.removeAt(oldIndex);
+					if(newIndex > shoppingLists.length)
+						newIndex = shoppingLists.length;
+					shoppingLists.insert(newIndex, moved);
+
+					List<int> idxs = [oldIndex, newIndex]..sort();
+
+					int i = idxs.first;
+					for(final list in shoppingLists
+						..getRange(idxs.first, idxs.last + 1)
+						..forEach((list) => list.order = i++)
+						..getRange(idxs.first, idxs.last + 1))
+						_dbManager.insertShoppingList(list);
 				}),
 				children: List<Widget>.generate(
 					shoppingLists?.length ?? 0,
@@ -121,7 +121,11 @@ class _ComprasHomePageState extends State<ComprasHomePage> {
 												arguments: {
 													'loadedList': shoppingLists[i],
 												}
-											).then((val) => _updateLists());
+											).then((val) {
+												if(shoppingLists[i].length == 0)
+													_dbManager.deleteShoppingList(shoppingLists[i].id);
+												_updateLists();
+											});
 										},
 									),
 									onDismissed: (direction) {

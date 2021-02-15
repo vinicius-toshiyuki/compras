@@ -1,131 +1,8 @@
 import 'package:flutter/material.dart';
-import 'product.dart';
-import 'productBottomSheet.dart';
-import 'dart:collection';
-import 'database.dart';
-import 'package:intl/intl.dart';
-
-const String ShoppingListDatabase = 'ShoppingListDatabase';
-
-class ShoppingList extends MapBase<String,Product> {
-	Map<String,Product> _products = Map();
-
-	Iterable<String> get keys {
-		List<String> pkeys = _products.keys
-			.toList()
-			..sort((key1, key2) {
-				if(
-					_products[key1].order == null ||
-					_products[key2].order == null
-				)
-					return -1;
-				return _products[key1].order.compareTo(_products[key2].order);
-			});
-		for(final key in pkeys) {
-			if(_products[key].order != null)
-			pkeys.insert(_products[key].order, pkeys.removeAt(pkeys.indexOf(key)));
-		}
-		return pkeys;
-	}
-	Product operator [](Object key) => _products[key];
-	int get length => _products.length;
-	Product remove(Object key) { _update(); return _products.remove(key); }
-	void clear() { _update(); _products.clear(); }
-	void operator []=(String key, Product val) { _update(); _products[key] = val; }
-
-	set products(Map<String,Product> val) { _update(); products = val; }
-	Map<String,Product> get product => Map.from(_products);
-
-	void _update() { dateModified = DateTime.now(); }
-
-	final DateTime dateCreated;
-	DateTime dateModified;
-	String _title;
-	String get title => _title ?? 'Nova lista';
-	set title(String val) { _update(); _title = val; }
-	int order;
-	int _id;
-
-	ShoppingList({
-		int id,
-		DateTime date,
-		this.dateModified,
-		String title,
-		this.order,
-		Map<String,Product> productList,
-	}): this.dateCreated = date ?? DateTime.now(),
-		this._id = id {
-		_title = title;
-		this.dateModified ??= this.dateCreated;
-		this._products = productList ?? Map();
-	}
-
-	void fromEntries(Iterable<MapEntry<String,Product>> entries) {
-		_products = Map.fromEntries(entries);
-	}
-
-	set id(int val) => this._id ??= val;
-	get id => this._id;
-
-	Map<String,dynamic> toDBMap() {
-		return {
-			DatabaseManager.id: id,
-			DatabaseManager.date: dateCreated.toIso8601String(),
-			DatabaseManager.dateModified: dateModified.toIso8601String(),
-			DatabaseManager.title: title,
-			DatabaseManager.order: order,
-			DatabaseManager.itemCount: length,
-		};
-	}
-
-	@override
-	String toString() => '$title ($length)';
-}
-
-class ShoppingListWidget extends StatelessWidget {
-	final ShoppingList list;
-
-	ShoppingListWidget({
-		@required this.list,
-	}): assert(list != null);
-
-	@override
-	Widget build(BuildContext context) {
-		return Padding(
-			padding: EdgeInsets.fromLTRB(15, 10, 15, 0),
-			child: Column(
-				crossAxisAlignment: CrossAxisAlignment.start,
-				mainAxisSize: MainAxisSize.min,
-				children: [
-					Row(
-						children: [
-							Expanded(
-								child: Text(
-									list.title,
-									style: Theme.of(context)
-										.textTheme
-										.headline6
-										.copyWith(fontWeight: FontWeight.bold)
-								),
-							),
-						],
-					),
-					Container(
-						height: 5,
-					),
-					Text(
-						'Modificada em ${DateFormat("dd/MM/yyyy HH:mm").format(list.dateModified)}',
-						style: Theme.of(context).textTheme.caption,
-					),
-					Text(
-						'Criada em ${DateFormat("dd/MM/yyyy HH:mm").format(list.dateCreated)}',
-						style: Theme.of(context).textTheme.caption,
-					),
-				],
-			),
-		);
-	}
-}
+import 'shoppinglist.dart';
+import '../database.dart';
+import '../product/product.dart';
+import '../product/widget.dart';
 
 class ShoppingListPage extends StatefulWidget {
 	static const routeName = '/shoppingList';
@@ -146,16 +23,28 @@ class _ShoppingListPageState extends State<ShoppingListPage> with WidgetsBinding
 	void didChangeAppLifecycleState(AppLifecycleState state) {
 		if(state == AppLifecycleState.paused) _save();
 	}
-	
+
 	DatabaseManager _dbManager = DatabaseManager(ShoppingListDatabase);
 	ShoppingList spList;
+	TextEditingController _controller = TextEditingController();
+
+	void _onTitleFocus() {
+		_controller.selection = TextSelection(
+			baseOffset: 0,
+			extentOffset: _controller.text.length
+		);
+		_controller.removeListener(_onTitleFocus);
+	}
 
 	@override
 	void initState() {
+		super.initState();
 		spList = widget.loadedList ?? ShoppingList();
 		spList.title ??= 'Nova lista';
 		WidgetsBinding.instance.addObserver(this);
-		super.initState();
+		_controller.text = spList.title;
+
+		_controller.addListener(_onTitleFocus);
 	}
 
 	@override
@@ -165,7 +54,7 @@ class _ShoppingListPageState extends State<ShoppingListPage> with WidgetsBinding
 	}
 
 	double get total {
-		return spList.length > 0 ? 
+		return spList.length > 0 ?
 			spList.values
 				.map((e) => e.total)
 				.reduce((val, el) => val + el) : 0;
@@ -198,22 +87,21 @@ class _ShoppingListPageState extends State<ShoppingListPage> with WidgetsBinding
 									Navigator.of(context).pop();
 								}
 							}
-							TextEditingController controller = TextEditingController();
-							controller.text = spList.title;
 							showDialog(
 								context: context,
 								builder: (context) => AlertDialog(
 									title: Text('Renomear lista'),
 									content: TextField(
-										controller: controller,
+										controller: _controller,
 										decoration: InputDecoration(
 											border: OutlineInputBorder(),
 											isDense: true,
 											labelText: 'Novo nome',
 										),
+										autofocus: true,
 										textCapitalization: TextCapitalization.words,
 										textInputAction: TextInputAction.done,
-										onSubmitted: (value) => _updateTitle(controller.text),
+										onSubmitted: (value) => _updateTitle(_controller.text),
 									),
 									actions: [
 										TextButton(
@@ -222,7 +110,7 @@ class _ShoppingListPageState extends State<ShoppingListPage> with WidgetsBinding
 										),
 										TextButton(
 											child: Text('OK'),
-											onPressed: () => _updateTitle(controller.text),
+											onPressed: () => _updateTitle(_controller.text),
 										),
 									],
 								),
@@ -236,25 +124,28 @@ class _ShoppingListPageState extends State<ShoppingListPage> with WidgetsBinding
 					itemCount: spList.length + 1,
 					itemBuilder: (BuildContext context, int i) {
 						if(i == spList.length) return Container(height: 60);
-						MapEntry<String,Product> removed;
 
+						List<MapEntry<String,Product>> removed = [];
 						ProductWidget product = ProductWidget(spListEntries[i].value);
 						return Dismissible(
 							key: Key('$i${spList.length}'),
 							child: product,
 							onDismissed: (direction) => setState(() {
-								removed = spListEntries.removeAt(i);
-								spList.remove(removed.key);
+								removed.add(spListEntries.removeAt(i));
+								spList.remove(removed.last.key);
 
 								Scaffold.of(context).showSnackBar(SnackBar(
 									content: Text('Item removido'),
 									action: SnackBarAction(
 										label: 'Desfazer',
 										onPressed: () => setState(() =>
-											spList.fromEntries(spListEntries..insert(i, removed))
+											spList.fromEntries(spListEntries..insert(i, removed.first))
 										),
 									),
-								));
+								)).closed.then((reason) {
+									if(reason != SnackBarClosedReason.action)
+										removed.remove(0);
+								});
 							}),
 							background: Container(
 								padding: EdgeInsets.symmetric(horizontal: 15),
@@ -278,7 +169,7 @@ class _ShoppingListPageState extends State<ShoppingListPage> with WidgetsBinding
 				floatingActionButton: Builder(
 					builder: (BuildContext context) {
 						return FloatingActionButton.extended(
-							onPressed: () => showProductBottomSheet(
+							onPressed: () => Product.showAddBottomSheet(
 								context,
 								setState,
 								_submit,
@@ -302,8 +193,8 @@ class _ShoppingListPageState extends State<ShoppingListPage> with WidgetsBinding
 	) {
 		if (name.isEmpty) return false;
 		double dprice, dquantity;
-		dprice = price.isNotEmpty ? double.parse(price) : 0;
-		dquantity = quantity.isNotEmpty ? double.parse(quantity) : 1;
+		dprice = double.tryParse(price) ?? 0;
+		dquantity = double.tryParse(quantity) ?? 1;
 
 		spList.update(name,
 			(value) {

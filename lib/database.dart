@@ -6,8 +6,9 @@ import 'package:flutter/widgets.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
-import 'shoppingList.dart';
-import 'product.dart';
+import 'shoppinglist/shoppinglist.dart';
+import 'product/product.dart';
+import 'product/data/data.dart';
 
 class DatabaseManager {
 	static const String id = '_id';
@@ -81,151 +82,110 @@ class DatabaseManager {
 
 	Future<void> insertShoppingList(ShoppingList shoppingList) async {
 		final Database db = await database;
-		await db.insert(
-			shoppingListTable,
-			shoppingList.toDBMap()
-				..removeWhere(
-					(key, val) => key == id && val == null
-				),
-			conflictAlgorithm: ConflictAlgorithm.replace,
-		);
 
-		shoppingList.id ??= (await db.query(
-			shoppingListTable,
-			where: "$id = (select max($id) from $shoppingListTable)",
-			columns: [id]
-		))[0][id];
+		db.transaction((tnx) async {
+			await tnx.insert(
+				shoppingListTable,
+				shoppingList.toDBMap()
+					..removeWhere(
+						(key, val) => key == id && val == null
+					),
+				conflictAlgorithm: ConflictAlgorithm.replace,
+			);
+			shoppingList.id ??= (await tnx.query(
+				shoppingListTable,
+				where: "$id = (select max($id) from $shoppingListTable)",
+				columns: [id]
+			))[0][id];
 
-		await db.delete(
-			productTable,
-			where: '$id = ?',
-			whereArgs: [shoppingList.id]
-		);
-
-		Batch batch = db.batch(); /* Só funciona se as operações forem em ordem */
-		for(final prdt in shoppingList.values) {
-			batch.insert(
+			await tnx.delete(
 				productTable,
-				prdt.toDBMap()
-					..putIfAbsent(id, () => shoppingList.id),
-				conflictAlgorithm: ConflictAlgorithm.replace,
+				where: '$id = ?',
+				whereArgs: [shoppingList.id]
 			);
-			for(final pd in prdt.values)
-			batch.insert(
-				productDataTable,
-				pd.toDBMap()
-					..putIfAbsent(id, () => shoppingList.id)
-					..putIfAbsent(productName, () => prdt.name),
-				conflictAlgorithm: ConflictAlgorithm.replace,
-			);
-		}
-		await batch.commit(noResult: true);
-	}
 
-	Future<void> _insertProduct(
-		Product product,
-		int shoppingListId
-	) async {
-		final Database db = await database;
-
-		await db.insert(
-			productTable,
-			product.toDBMap()
-				..putIfAbsent(id, () => shoppingListId),
-			conflictAlgorithm: ConflictAlgorithm.replace,
-		);
-	}
-
-	Future<void> _insertProductData(
-		ProductData pd,
-		int shoppingListId,
-		String productName
-	) async {
-		final Database db = await database;
-
-		await db.insert(
-			productDataTable,
-			pd.toDBMap()
-				..putIfAbsent(id, () => shoppingListId)
-				..putIfAbsent(DatabaseManager.productName, () => productName),
-			conflictAlgorithm: ConflictAlgorithm.replace,
-		);
+			for(final prdt in shoppingList.values) {
+				await tnx.insert(
+					productTable,
+					prdt.toDBMap()
+						..putIfAbsent(id, () => shoppingList.id),
+					conflictAlgorithm: ConflictAlgorithm.abort,
+				);
+				for(final pd in prdt.values)
+				await tnx.insert(
+					productDataTable,
+					pd.toDBMap()
+						..putIfAbsent(id, () => shoppingList.id)
+						..putIfAbsent(productName, () => prdt.name),
+					conflictAlgorithm: ConflictAlgorithm.abort,
+				);
+			}
+		});
 	}
 
 	Future<List<ShoppingList>> getShoppingLists() async {
 		final Database db = await database;
-		final List<Map<String, dynamic>> maps = await db.query(shoppingListTable);
 
 		List<ShoppingList> lists = [];
-		for(final map in maps)
-		lists.add(ShoppingList(
-			id: map[id],
-			date: DateTime.parse(map[date]),
-			dateModified: DateTime.parse(map[dateModified]),
-			title: map[title],
-			order: map[order],
-			productList: Map.fromIterable(
-				await _getProducts(map[id]),
-				key: (prdt) => prdt.name,
-				value: (prdt) => prdt,
-			),
-		));
 
-		return lists;
-	}
+		return db.transaction((tnx) async {
+			final List<Map<String, dynamic>> maps = await tnx.query(shoppingListTable);
+			for(final map in maps) {
+				final List<Map<String, dynamic>> productMaps =
+					await tnx.query(
+						productTable,
+						where: '$id = ?',
+						whereArgs: [map[id]],
+					);
 
-	Future<List<Product>> _getProducts(int shoppingListId) async {
-		final Database db = await database;
-		final List<Map<String, dynamic>> maps =
-			await db.query(
-				productTable,
-				where: '$id = ?',
-				whereArgs: [shoppingListId],
-			);
+				List<Product> prdts = List.generate(
+					productMaps.length,
+					(i) => Product(
+						name: productMaps[i][productName],
+						order: productMaps[i][order],
+					),
+				);
 
-		List<Product> prdts = List.generate(
-			maps.length,
-			(i) => Product(
-				name: maps[i][productName],
-				order: maps[i][order],
-			),
-		);
+				for(final prdt in prdts) {
+					final List<Map<String, dynamic>> pdMaps =
+						await tnx.query(
+							productDataTable,
+							where: '$id = ? and $productName = ?',
+							whereArgs: [map[id], prdt.name],
+						);
 
-		for(final prdt in prdts) {
-			List<ProductData> pds = await _getProductsData(
-				shoppingListId,
-				prdt.name,
-			);
-			prdt.data = Map.fromIterable(
-				pds,
-				key: (pd) => pd.type,
-				value: (pd) => pd,
-			);
-		}
+					List<ProductData> pds = List.generate(
+						pdMaps.length,
+						(i) => ProductData(
+							type: pdMaps[i][productDataType],
+							price: pdMaps[i][productDataPrice],
+							quantity: pdMaps[i][productDataQuantity],
+						),
+					);
 
-		return prdts;
-	}
+					prdt.data = Map.fromIterable(
+						pds,
+						key: (pd) => pd.type,
+						value: (pd) => pd,
+					);
+				}
 
-	Future<List<ProductData>> _getProductsData(
-		int shoppingListId,
-		String name,
-	) async {
-		final Database db = await database;
-		final List<Map<String, dynamic>> maps =
-			await db.query(
-				productDataTable,
-				where: '$id = ? and $productName = ?',
-				whereArgs: [shoppingListId, name],
-			);
+				lists.add(ShoppingList(
+					id: map[id],
+					date: DateTime.parse(map[date]),
+					dateModified: DateTime.parse(map[dateModified]),
+					title: map[title],
+					order: map[order],
+					productList: Map.fromIterable(
+						prdts,
+						key: (prdt) => prdt.name,
+						value: (prdt) => prdt,
+					),
+				));
+			}
+			return lists;
+		});
 
-		return List.generate(
-			maps.length,
-			(i) => ProductData(
-				type: maps[i][productDataType],
-				price: maps[i][productDataPrice],
-				quantity: maps[i][productDataQuantity],
-			),
-		);
 	}
 
 	Future<void> updateShoppingList(
