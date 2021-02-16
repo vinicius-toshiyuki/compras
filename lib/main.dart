@@ -1,24 +1,25 @@
 import 'package:flutter/material.dart';
-import 'shoppinglist/shoppinglist.dart';
-import 'shoppinglist/page.dart';
-import 'shoppinglist/widget.dart';
-import 'database.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:Compras/Compras.dart';
 
 void main() => runApp(ComprasApp());
 
 class ComprasApp extends StatelessWidget {
-	final String title = 'Compras';
-
 	@override
 	Widget build(BuildContext context) {
 		return MaterialApp(
-			title: title,
+			localizationsDelegates: [
+				S.delegate,
+				GlobalMaterialLocalizations.delegate,
+				GlobalWidgetsLocalizations.delegate,
+			],
+			supportedLocales: S.delegate.supportedLocales,
 			theme: ThemeData(
 				primarySwatch: Colors.blue,
 			),
 			darkTheme: ThemeData.dark(),
 			home: DividerTheme(
-				child: ComprasHomePage(title: title),
+				child: ComprasHomePage(),
 				data: DividerTheme.of(context).copyWith(
 					indent: 15,
 					endIndent: 15,
@@ -39,12 +40,6 @@ class ComprasApp extends StatelessWidget {
 }
 
 class ComprasHomePage extends StatefulWidget {
-	final String title;
-
-	ComprasHomePage({
-		@required this.title,
-	});
-
 	_ComprasHomePageState createState() => _ComprasHomePageState();
 }
 
@@ -76,7 +71,7 @@ class _ComprasHomePageState extends State<ComprasHomePage> {
 		return Scaffold(
 			appBar: AppBar(
 				leading: Icon(Icons.local_grocery_store),
-				title: Text(widget.title,
+				title: Text(S.of(context).title,
 					overflow: TextOverflow.ellipsis,
 				),
 				// actions: [
@@ -89,7 +84,7 @@ class _ComprasHomePageState extends State<ComprasHomePage> {
 			body: ReorderableListView(
 				onReorder: (oldIndex, newIndex) => setState(() {
 					final moved = shoppingLists.removeAt(oldIndex);
-					if(newIndex > shoppingLists.length)
+					if (newIndex > shoppingLists.length)
 						newIndex = shoppingLists.length;
 					shoppingLists.insert(newIndex, moved);
 
@@ -122,8 +117,7 @@ class _ComprasHomePageState extends State<ComprasHomePage> {
 													'loadedList': shoppingLists[i],
 												}
 											).then((val) {
-												if(shoppingLists[i].length == 0)
-													_dbManager.deleteShoppingList(shoppingLists[i].id);
+												if (shoppingLists[i].length == 0) _dbManager.deleteShoppingList(shoppingLists[i].id);
 												_updateLists();
 											});
 										},
@@ -158,7 +152,7 @@ class _ComprasHomePageState extends State<ComprasHomePage> {
 			),
 			floatingActionButton: FloatingActionButton(
 				child: Icon(Icons.add),
-				tooltip: 'Criar nova lista de compras',
+				tooltip: S.of(context).New('female', S.of(context).shoppinglist),
 				onPressed: () {
 					Navigator.of(context)
 						.pushNamed(ShoppingListPage.routeName)

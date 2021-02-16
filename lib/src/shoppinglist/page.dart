@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'shoppinglist.dart';
-import '../database.dart';
-import '../product/product.dart';
-import '../product/widget.dart';
+import 'package:Compras/Compras.dart';
 
 class ShoppingListPage extends StatefulWidget {
 	static const routeName = '/shoppingList';
@@ -19,32 +17,25 @@ class ShoppingListPage extends StatefulWidget {
 }
 
 class _ShoppingListPageState extends State<ShoppingListPage> with WidgetsBindingObserver {
-	@override
-	void didChangeAppLifecycleState(AppLifecycleState state) {
-		if(state == AppLifecycleState.paused) _save();
-	}
-
 	DatabaseManager _dbManager = DatabaseManager(ShoppingListDatabase);
-	ShoppingList spList;
-	TextEditingController _controller = TextEditingController();
+	TextEditingController _titleController = TextEditingController();
+	ShoppingList list;
 
-	void _onTitleFocus() {
-		_controller.selection = TextSelection(
-			baseOffset: 0,
-			extentOffset: _controller.text.length
-		);
-		_controller.removeListener(_onTitleFocus);
+	@override
+	void didChangeAppLifecycleState(
+		AppLifecycleState state
+	) {
+		if (state == AppLifecycleState.paused) _save();
 	}
 
 	@override
 	void initState() {
 		super.initState();
-		spList = widget.loadedList ?? ShoppingList();
-		spList.title ??= 'Nova lista';
 		WidgetsBinding.instance.addObserver(this);
-		_controller.text = spList.title;
 
-		_controller.addListener(_onTitleFocus);
+		list = widget.loadedList ?? ShoppingList();
+
+		_titleController.addListener(_onTitleFocus);
 	}
 
 	@override
@@ -53,21 +44,32 @@ class _ShoppingListPageState extends State<ShoppingListPage> with WidgetsBinding
 		super.dispose();
 	}
 
+	void _onTitleFocus() {
+		_titleController.removeListener(_onTitleFocus);
+		_titleController.text = list.title;
+		_titleController.selection = TextSelection(
+			baseOffset: 0,
+			extentOffset: _titleController.text.length
+		);
+	}
+
 	double get total {
-		return spList.length > 0 ?
-			spList.values
+		return list.length > 0 ?
+			list.values
 				.map((e) => e.total)
 				.reduce((val, el) => val + el) : 0;
 	}
 
 	void _save() {
-		if(spList.length > 0)
-		_dbManager.insertShoppingList(spList);
+		if (list.length > 0)
+			_dbManager.insertShoppingList(list);
 	}
 
 	@override
 	Widget build(BuildContext context) {
-		List<MapEntry<String,Product>> spListEntries = List.from(spList.entries);
+		List<MapEntry<String,Product>> listEntries = List.from(list.entries);
+		list.title ??= S.of(context).New('female', S.of(context).list);
+
 		return WillPopScope(
 			onWillPop: () async {
 				_save();
@@ -76,41 +78,45 @@ class _ShoppingListPageState extends State<ShoppingListPage> with WidgetsBinding
 			child: Scaffold(
 				appBar: AppBar(
 					title: TextButton(
-						child: Text(spList.title,
+						child: Text(list.title,
 							style: Theme.of(context).primaryTextTheme.headline6,
 							overflow: TextOverflow.ellipsis,
 						),
 						onPressed: () {
 							void _updateTitle(String newTitle) {
-								if(newTitle.isNotEmpty) {
-									setState(() => spList.title = newTitle);
+								if (newTitle.isNotEmpty) {
+									setState(() => list.title = newTitle);
 									Navigator.of(context).pop();
+									_titleController.addListener(_onTitleFocus);
 								}
 							}
 							showDialog(
 								context: context,
 								builder: (context) => AlertDialog(
-									title: Text('Renomear lista'),
+									title: Text(S.of(context).Rename(S.of(context).list)),
 									content: TextField(
-										controller: _controller,
+										controller: _titleController,
 										decoration: InputDecoration(
 											border: OutlineInputBorder(),
 											isDense: true,
-											labelText: 'Novo nome',
+											labelText: S.of(context).New('male', S.of(context).name),
 										),
 										autofocus: true,
 										textCapitalization: TextCapitalization.words,
 										textInputAction: TextInputAction.done,
-										onSubmitted: (value) => _updateTitle(_controller.text),
+										onSubmitted: (value) => _updateTitle(_titleController.text),
 									),
 									actions: [
 										TextButton(
-											child: Text('Cancelar'),
-											onPressed: Navigator.of(context).pop,
+											child: Text(S.of(context).cancel),
+											onPressed: () {
+												_titleController.addListener(_onTitleFocus);
+												Navigator.of(context).pop();
+											},
 										),
 										TextButton(
-											child: Text('OK'),
-											onPressed: () => _updateTitle(_controller.text),
+											child: Text(S.of(context).OK),
+											onPressed: () => _updateTitle(_titleController.text),
 										),
 									],
 								),
@@ -121,29 +127,29 @@ class _ShoppingListPageState extends State<ShoppingListPage> with WidgetsBinding
 				body: ListView.separated(
 					separatorBuilder: (BuildContext context, int i) =>
 						Divider(height: 0, indent: 15, endIndent: 15),
-					itemCount: spList.length + 1,
+					itemCount: list.length + 1,
 					itemBuilder: (BuildContext context, int i) {
-						if(i == spList.length) return Container(height: 60);
+						if (i == list.length) return Container(height: 60);
 
 						List<MapEntry<String,Product>> removed = [];
-						ProductWidget product = ProductWidget(spListEntries[i].value);
+						ProductWidget product = ProductWidget(listEntries[i].value);
 						return Dismissible(
-							key: Key('$i${spList.length}'),
+							key: Key('$i${list.length}'),
 							child: product,
 							onDismissed: (direction) => setState(() {
-								removed.add(spListEntries.removeAt(i));
-								spList.remove(removed.last.key);
+								removed.add(listEntries.removeAt(i));
+								list.remove(removed.last.key);
 
 								Scaffold.of(context).showSnackBar(SnackBar(
-									content: Text('Item removido'),
+									content: Text(S.of(context).Remove('male', toCapitalized(S.of(context).item))),
 									action: SnackBarAction(
-										label: 'Desfazer',
+										label: S.of(context).undo,
 										onPressed: () => setState(() =>
-											spList.fromEntries(spListEntries..insert(i, removed.first))
+											list.fromEntries(listEntries..insert(i, removed.first))
 										),
 									),
 								)).closed.then((reason) {
-									if(reason != SnackBarClosedReason.action)
+									if (reason != SnackBarClosedReason.action)
 										removed.remove(0);
 								});
 							}),
@@ -173,11 +179,11 @@ class _ShoppingListPageState extends State<ShoppingListPage> with WidgetsBinding
 								context,
 								setState,
 								_submit,
-								'Novo produto',
+								S.of(context).New('male', S.of(context).product),
 							),
-							tooltip: 'Adicionar',
+							tooltip: S.of(context).add,
 							icon: Icon(Icons.add),
-							label: Text('R\$${total.toStringAsFixed(2)}'),
+							label: Text(S.of(context).currency(total.toStringAsFixed(2))),
 						);
 					},
 				),
@@ -196,15 +202,15 @@ class _ShoppingListPageState extends State<ShoppingListPage> with WidgetsBinding
 		dprice = double.tryParse(price) ?? 0;
 		dquantity = double.tryParse(quantity) ?? 1;
 
-		spList.update(name,
+		list.update(name,
 			(value) {
-				spList[name].updateData(
+				list[name].updateData(
 					type: type,
 					price: dprice,
 					quantity: dquantity,
 					insertIfAbsent: true,
 				);
-				return spList[name];
+				return list[name];
 			},
 			ifAbsent: () {
 					Product product = Product(

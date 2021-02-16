@@ -6,9 +6,7 @@ import 'package:flutter/widgets.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
-import 'shoppinglist/shoppinglist.dart';
-import 'product/product.dart';
-import 'product/data/data.dart';
+import 'package:Compras/Compras.dart';
 
 class DatabaseManager {
 	static const String id = '_id';
@@ -21,7 +19,7 @@ class DatabaseManager {
 	static const String productDataType = '_type';
 	static const String productDataPrice = '_price';
 	static const String productDataQuantity = '_quantity';
-	static const String shoppingListTable = 'shopping_lists';
+	static const String shoppinglistTable = 'shopping_lists';
 	static const String productTable = 'products';
 	static const String productDataTable = 'products_data';
 
@@ -36,11 +34,11 @@ class DatabaseManager {
 		WidgetsFlutterBinding.ensureInitialized();
 		return openDatabase(
 			join(await getDatabasesPath(), name),
-			onConfigure: (db) async => await db.execute("pragma foreign_keys = on"),
+			onConfigure: (db) async => await db.execute("PRAGMA FOREIGN_KEYS = ON"),
 			onCreate: (db, version) async {
 				await db.execute(
 					"""
-					CREATE TABLE $shoppingListTable (
+					CREATE TABLE $shoppinglistTable (
 						$id INTEGER PRIMARY KEY AUTOINCREMENT,
 						$date DATE NOT NULL,
 						$dateModified DATE,
@@ -56,7 +54,7 @@ class DatabaseManager {
 						$id INTEGER NOT NULL,
 						$productName TEXT NOT NULL,
 						$order INTEGER,
-						FOREIGN Key ($id) REFERENCES $shoppingListTable ($id)
+						FOREIGN Key ($id) REFERENCES $shoppinglistTable ($id)
 						ON DELETE CASCADE,
 						PRIMARY KEY ($id, $productName),
 						UNIQUE ($order, $id)
@@ -80,45 +78,43 @@ class DatabaseManager {
 		);
 	}
 
-	Future<void> insertShoppingList(ShoppingList shoppingList) async {
+	Future<void> insertShoppingList(ShoppingList shoppinglist) async {
 		final Database db = await database;
 
 		db.transaction((tnx) async {
 			await tnx.insert(
-				shoppingListTable,
-				shoppingList.toDBMap()
-					..removeWhere(
-						(key, val) => key == id && val == null
-					),
+				shoppinglistTable,
+				shoppinglist.toDBMap()
+					..removeWhere((key, val) => key == id && val == null),
 				conflictAlgorithm: ConflictAlgorithm.replace,
 			);
-			shoppingList.id ??= (await tnx.query(
-				shoppingListTable,
-				where: "$id = (select max($id) from $shoppingListTable)",
+			shoppinglist.id ??= (await tnx.query(
+				shoppinglistTable,
+				where: "$id = (SELECT max($id) FROM $shoppinglistTable)",
 				columns: [id]
 			))[0][id];
 
 			await tnx.delete(
 				productTable,
 				where: '$id = ?',
-				whereArgs: [shoppingList.id]
+				whereArgs: [shoppinglist.id]
 			);
 
-			for(final prdt in shoppingList.values) {
+			for(final prdt in shoppinglist.values) {
 				await tnx.insert(
 					productTable,
 					prdt.toDBMap()
-						..putIfAbsent(id, () => shoppingList.id),
+						..putIfAbsent(id, () => shoppinglist.id),
 					conflictAlgorithm: ConflictAlgorithm.abort,
 				);
 				for(final pd in prdt.values)
-				await tnx.insert(
-					productDataTable,
-					pd.toDBMap()
-						..putIfAbsent(id, () => shoppingList.id)
-						..putIfAbsent(productName, () => prdt.name),
-					conflictAlgorithm: ConflictAlgorithm.abort,
-				);
+					await tnx.insert(
+						productDataTable,
+						pd.toDBMap()
+							..putIfAbsent(id, () => shoppinglist.id)
+							..putIfAbsent(productName, () => prdt.name),
+						conflictAlgorithm: ConflictAlgorithm.abort,
+					);
 			}
 		});
 	}
@@ -129,13 +125,13 @@ class DatabaseManager {
 		List<ShoppingList> lists = [];
 
 		return db.transaction((tnx) async {
-			final List<Map<String, dynamic>> maps = await tnx.query(shoppingListTable);
-			for(final map in maps) {
+			final List<Map<String, dynamic>> maps = await tnx.query(shoppinglistTable);
+			for(final listMaps in maps) {
 				final List<Map<String, dynamic>> productMaps =
 					await tnx.query(
 						productTable,
 						where: '$id = ?',
-						whereArgs: [map[id]],
+						whereArgs: [listMaps[id]],
 					);
 
 				List<Product> prdts = List.generate(
@@ -151,7 +147,7 @@ class DatabaseManager {
 						await tnx.query(
 							productDataTable,
 							where: '$id = ? and $productName = ?',
-							whereArgs: [map[id], prdt.name],
+							whereArgs: [listMaps[id], prdt.name],
 						);
 
 					List<ProductData> pds = List.generate(
@@ -171,11 +167,11 @@ class DatabaseManager {
 				}
 
 				lists.add(ShoppingList(
-					id: map[id],
-					date: DateTime.parse(map[date]),
-					dateModified: DateTime.parse(map[dateModified]),
-					title: map[title],
-					order: map[order],
+					id: listMaps[id],
+					date: DateTime.parse(listMaps[date]),
+					dateModified: DateTime.parse(listMaps[dateModified]),
+					title: listMaps[title],
+					order: listMaps[order],
 					productList: Map.fromIterable(
 						prdts,
 						key: (prdt) => prdt.name,
@@ -189,35 +185,35 @@ class DatabaseManager {
 	}
 
 	Future<void> updateShoppingList(
-		ShoppingList shoppingList
+		ShoppingList shoppinglist
 	) async {
 		final db = await database;
 
 		await db.update(
-			shoppingListTable,
-			shoppingList.toDBMap(),
+			shoppinglistTable,
+			shoppinglist.toDBMap(),
 			where: "$id = ?",
-			whereArgs: [shoppingList.id],
+			whereArgs: [shoppinglist.id],
 		);
 	}
 
 	Future<void> updateProduct(
 		Product product,
-		int shoppingListId,
+		int shoppinglistId,
 	) async {
 		final db = await database;
 
 		await db.update(
 			productTable,
 			product.toDBMap(),
-			where: "$id = ? and $productName = ?",
-			whereArgs: [shoppingListId, product.name],
+			where: "$id = ? AND $productName = ?",
+			whereArgs: [shoppinglistId, product.name],
 		);
 	}
 
 	Future<void> updateProductData(
 		ProductData pd,
-		int shoppingListId,
+		int shoppinglistId,
 		String productName,
 	) async {
 		final db = await database;
@@ -225,38 +221,38 @@ class DatabaseManager {
 		await db.update(
 			productDataTable,
 			pd.toDBMap(),
-			where: "$id = ? and ${DatabaseManager.productName} = ? and $productDataType = ?",
-			whereArgs: [shoppingListId, productName, pd.type],
+			where: "$id = ? AND ${DatabaseManager.productName} = ? AND $productDataType = ?",
+			whereArgs: [shoppinglistId, productName, pd.type],
 		);
 	}
 
 	Future<void> deleteShoppingList(
-		int shoppingListId,
+		int shoppinglistId,
 	) async {
 		final db = await database;
 
 		await db.delete(
-			shoppingListTable,
+			shoppinglistTable,
 			where: "$id = ?",
-			whereArgs: [shoppingListId],
+			whereArgs: [shoppinglistId],
 		);
 	}
 
 	Future<void> deleteProduct(
-		int shoppingListId,
+		int shoppinglistId,
 		String productName,
 	) async {
 		final db = await database;
 
 		await db.delete(
 			productTable,
-			where: "$id = ? and ${DatabaseManager.productName} = ?",
-			whereArgs: [shoppingListId, productName],
+			where: "$id = ? AND ${DatabaseManager.productName} = ?",
+			whereArgs: [shoppinglistId, productName],
 		);
 	}
 
 	Future<void> deleteProductData(
-		int shoppingListId,
+		int shoppinglistId,
 		String productName,
 		String productDataType,
 	) async {
@@ -264,8 +260,8 @@ class DatabaseManager {
 
 		await db.delete(
 			productTable,
-			where: "$id = ? and ${DatabaseManager.productName} = ? and ${DatabaseManager.productDataType} = ?",
-			whereArgs: [shoppingListId, productName, productDataType],
+			where: "$id = ? AND ${DatabaseManager.productName} = ? AND ${DatabaseManager.productDataType} = ?",
+			whereArgs: [shoppinglistId, productName, productDataType],
 		);
 	}
 }

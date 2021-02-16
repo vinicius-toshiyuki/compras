@@ -1,0 +1,11 @@
+export 'src/product/data/data.dart';
+export 'src/product/data/widget.dart';
+export 'src/product/product.dart';
+export 'src/product/widget.dart';
+export 'src/shoppinglist/page.dart';
+export 'src/shoppinglist/shoppinglist.dart';
+export 'src/shoppinglist/widget.dart';
+export 'src/database.dart';
+export 'src/stringmethods.dart';
+export 'src/generated/i18n.dart';
+export 'src/generated/messages_all.dart';

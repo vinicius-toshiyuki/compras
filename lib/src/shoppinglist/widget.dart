@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'shoppinglist.dart';
+import 'package:Compras/Compras.dart';
 
 class ShoppingListWidget extends StatelessWidget {
 	final ShoppingList list;
@@ -34,11 +34,17 @@ class ShoppingListWidget extends StatelessWidget {
 						height: 5,
 					),
 					Text(
-						'Modificada em ${DateFormat("dd/MM/yyyy HH:mm").format(list.dateModified)}',
+						S.of(context).ModifiedIn(
+							'female',
+							DateFormat(S.of(context).dateformat
+						).format(list.dateModified)),
 						style: Theme.of(context).textTheme.caption,
 					),
 					Text(
-						'Criada em ${DateFormat("dd/MM/yyyy HH:mm").format(list.dateCreated)}',
+						S.of(context).CreatedIn(
+							'female',
+							DateFormat(S.of(context).dateformat
+						).format(list.dateCreated)),
 						style: Theme.of(context).textTheme.caption,
 					),
 				],

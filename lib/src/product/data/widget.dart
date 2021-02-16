@@ -30,7 +30,7 @@ class ProductDataWidget extends StatelessWidget {
 		);
 
 		List<Widget> values = [Text('$quantity × R\$$price', style: dataStyle)];
-		if(type.isNotEmpty) values.insert(0, Text('$type', style: nameStyle));
+		if (type.isNotEmpty) values.insert(0, Text('$type', style: nameStyle));
 
 		return Row(
 			children: [

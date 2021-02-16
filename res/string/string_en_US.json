@@ -1,0 +1,41 @@
+{
+	"title": "Compras",
+
+	"NewMale": "New ${thing}",
+	"NewFemale": "New ${thing}",
+	"NewGOther": "New ${thing}",
+	"Rename": "Rename ${thing}",
+	"RemoveMale": "${thing} removed",
+	"RemoveFemale": "${thing} removed",
+	"RemoveGOther": "${thing} removed",
+	"Edit": "Edit ${thing}",
+	"ModifiedInMale": "Modified in ${date}",
+	"ModifiedInFemale": "Modified in ${date}",
+	"ModifiedInGOther": "Modified in ${date}",
+	"CreatedInMale": "Created in ${date}",
+	"CreatedInFemale": "Created in ${date}",
+	"CreatedInGOther": "Created in ${date}",
+
+	"dateformat": "MM/dd/yyyy HH:mm",
+
+	"confirm": "Confirm",
+	"OK": "OK",
+	"cancel": "Cancel",
+	"yes": "Yes",
+	"no": "No",
+	"undo": "Undo",
+	"add": "Add",
+	"warning": "Warning",
+
+	"name": "name",
+	"list": "list",
+	"item": "item",
+	"product": "product",
+	"shoppinglist": "shopping list",
+	"price": "price",
+	"quanity": "quantity",
+	"type": "Brand/type",
+	"currency": "\$${value}",
+
+	"mergeTypesText": "This brand/type already exists. Merge duplicated brands/types?"
+}

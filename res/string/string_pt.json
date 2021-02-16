@@ -1,0 +1,41 @@
+{
+	"title": "Compras",
+
+	"NewMale": "Novo ${thing}",
+	"NewFemale": "Nova ${thing}",
+	"NewGOther": "Novo ${thing}",
+	"Rename": "Renomear ${thing}",
+	"RemoveMale": "${thing} removido",
+	"RemoveFemale": "${thing} removida",
+	"RemoveGOther": "${thing} removido",
+	"Edit": "Editar ${thing}",
+	"ModifiedInMale": "Modificado em ${date}",
+	"ModifiedInFemale": "Modificada em ${date}",
+	"ModifiedInGOther": "Modificado em ${date}",
+	"CreatedInMale": "Criado em ${date}",
+	"CreatedInFemale": "Criada em ${date}",
+	"CreatedInGOther": "Criado em ${date}",
+
+	"dateformat": "dd/MM/yyyy HH:mm",
+
+	"confirm": "Confirmar",
+	"OK": "OK",
+	"cancel": "Cancelar",
+	"yes": "Sim",
+	"no": "Não",
+	"undo": "Desfazer",
+	"add": "Adicionar",
+	"warning": "Atenção",
+
+	"name": "nome",
+	"list": "lista",
+	"item": "item",
+	"product": "produto",
+	"shoppinglist": "lista de compras",
+	"price": "preço",
+	"quanity": "quantidade",
+	"type": "marca/tipo",
+	"currency": "R\$${value}",
+
+	"mergeTypesText": "Esta marca/tipo já existe. Deseja juntar as marcas/tipos duplicados?"
+}

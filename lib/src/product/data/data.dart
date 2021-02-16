@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../database.dart';
+import 'package:Compras/Compras.dart';
 
 class ProductData {
 	String _type;

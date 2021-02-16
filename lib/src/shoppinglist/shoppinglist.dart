@@ -1,5 +1,4 @@
-import '../product/product.dart';
-import '../database.dart';
+import 'package:Compras/Compras.dart';
 import 'dart:collection';
 
 const String ShoppingListDatabase = 'ShoppingListDatabase';
@@ -11,7 +10,7 @@ class ShoppingList extends MapBase<String,Product> {
 		List<String> pkeys = _products.keys
 			.toList()
 			..sort((key1, key2) {
-				if(
+				if (
 					_products[key1].order == null ||
 					_products[key2].order == null
 				)
@@ -19,7 +18,7 @@ class ShoppingList extends MapBase<String,Product> {
 				return _products[key1].order.compareTo(_products[key2].order);
 			});
 		for(final key in pkeys) {
-			if(_products[key].order != null)
+			if (_products[key].order != null)
 			pkeys.insert(_products[key].order, pkeys.removeAt(pkeys.indexOf(key)));
 		}
 		return pkeys;
@@ -38,7 +37,7 @@ class ShoppingList extends MapBase<String,Product> {
 	final DateTime dateCreated;
 	DateTime dateModified;
 	String _title;
-	String get title => _title ?? 'Nova lista';
+	String get title => _title;
 	set title(String val) { _update(); _title = val; }
 	int order;
 	int _id;

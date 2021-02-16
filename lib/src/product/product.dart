@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'data/data.dart';
-import '../database.dart';
+import 'package:Compras/Compras.dart';
 import 'dart:collection';
 
 class Product extends MapBase<String,ProductData> {
@@ -35,7 +34,7 @@ class Product extends MapBase<String,ProductData> {
 		double price = 0,
 		double quantity = 1,
 	}) {
-		if(containsKey(type))
+		if (containsKey(type))
 			throw 'Type "$type" already exists, use "updateData()".';
 		data[type] = ProductData(
 			type: type,
@@ -50,9 +49,9 @@ class Product extends MapBase<String,ProductData> {
 		double quantity = 1,
 		bool insertIfAbsent = false,
 	}) {
-		if(containsKey(type)) {
-			data[type].price = price;
-			data[type].quantity = quantity;
+		if (containsKey(type)) {
+			this[type].price = price;
+			this[type].quantity = quantity;
 		} else if (insertIfAbsent)
 			addType(type: type, price: price, quantity: quantity);
 		else
@@ -63,8 +62,8 @@ class Product extends MapBase<String,ProductData> {
 		String type,
 		String newType,
 	) {
-		if(containsKey(type) && !containsKey(newType)) {
-			data[newType] = remove(type);
+		if (containsKey(type) && !containsKey(newType)) {
+			this[newType] = remove(type);
 			return true;
 		}
 		return type == newType;
@@ -74,9 +73,9 @@ class Product extends MapBase<String,ProductData> {
 		@required String into,
 		@required String from,
 	}) {
-		if(!containsKey(into) || !containsKey(from))
+		if (!containsKey(into) || !containsKey(from))
 			throw 'Invalid values ($into, $from) in "mergeType()"';
-		data[into].quantity += data[from].quantity;
+		this[into].quantity += this[from].quantity;
 		remove(from);
 	}
 
@@ -198,12 +197,13 @@ class Product extends MapBase<String,ProductData> {
 							return passed;
 						}
 
+						/* = Create and set up text fields ====== */
 						TextField nameField = TextField(
 							controller: nameController,
 							decoration: InputDecoration(
 								border: OutlineInputBorder(),
 								isDense: true,
-								labelText: 'Nome',
+								labelText: toCapitalized(S.of(context).name),
 							),
 							autofocus: true,
 							textInputAction: TextInputAction.next,
@@ -218,7 +218,7 @@ class Product extends MapBase<String,ProductData> {
 							decoration: InputDecoration(
 								border: OutlineInputBorder(),
 								isDense: true,
-								labelText: 'Preço',
+								labelText: toCapitalized(S.of(context).price),
 							),
 							keyboardType: TextInputType.number,
 							textInputAction: TextInputAction.next,
@@ -232,7 +232,7 @@ class Product extends MapBase<String,ProductData> {
 							decoration: InputDecoration(
 								border: OutlineInputBorder(),
 								isDense: true,
-								labelText: 'Quantidade',
+								labelText: toCapitalized(S.of(context).quanity),
 							),
 							keyboardType: TextInputType.number,
 							textInputAction: TextInputAction.done,
@@ -240,7 +240,7 @@ class Product extends MapBase<String,ProductData> {
 								valid = nameController.text.isNotEmpty && validNumbers()
 							),
 							onSubmitted: (value) => setState(() {
-								if(valid && _submit()) Navigator.of(context).pop();
+								if (valid && _submit()) Navigator.of(context).pop();
 							}),
 						);
 
@@ -249,14 +249,15 @@ class Product extends MapBase<String,ProductData> {
 							decoration: InputDecoration(
 								border: OutlineInputBorder(),
 								isDense: true,
-								labelText: 'Marca/tipo',
+								labelText: toCapitalized(S.of(context).type),
 							),
 							textCapitalization: TextCapitalization.words,
 							textInputAction: TextInputAction.done,
 							onSubmitted: (value) => setState(() {
-								if(valid && _submit()) Navigator.of(context).pop();
+								if (valid && _submit()) Navigator.of(context).pop();
 							}),
 						);
+						/* ===================================== */
 
 						return Padding(
 							padding: EdgeInsets.all(15.0),
@@ -268,9 +269,9 @@ class Product extends MapBase<String,ProductData> {
 										alignment: Alignment.topRight,
 										child: TextButton.icon(
 											onPressed: () => setState(() {
-												if(valid && _submit()) Navigator.of(context).pop();
+												if (valid && _submit()) Navigator.of(context).pop();
 											}),
-											label: Text('Confirmar'),
+											label: Text(S.of(context).confirm),
 											icon: confirmIcon(),
 										),
 									),

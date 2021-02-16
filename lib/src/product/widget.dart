@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'product.dart';
-import 'data/widget.dart';
-import 'data/data.dart';
+import 'package:Compras/Compras.dart';
 
 class ProductWidget extends StatefulWidget {
 	ProductWidget(this.child, {Key key}) : assert(child != null), super(key: key);
@@ -49,7 +47,7 @@ class _ProductWidget extends State<ProductWidget> {
 										),
 										Padding(
 											padding: EdgeInsets.only(top: 2),
-											child: Text('R\$${widget.child.total.toStringAsFixed(2)}',
+											child: Text(S.of(context).currency(widget.child.total.toStringAsFixed(2)),
 												style: Theme.of(context).textTheme.subtitle2,
 											),
 										),
@@ -66,14 +64,14 @@ class _ProductWidget extends State<ProductWidget> {
 
 		List data = List.from(widget.child.entries);
 
-		if(_expanded) info += List.generate(
+		if (_expanded) info += List.generate(
 			data.length,
 			(int i) {
 				String type = data[i].key;
 				ProductData pd = data[i].value;
 
 				Function() onDelete = () => setState(() {
-					if(widget.child.length > 1)
+					if (widget.child.length > 1)
 						widget.child.remove(type);
 					else
 						_expanded = false;
@@ -81,20 +79,17 @@ class _ProductWidget extends State<ProductWidget> {
 
 				Function(Function()) showDeleteConfirmationDialog = (onAccept) {
 					showDialog<void>(
-						context: context, // talvez tenha que ficar mais detnro??
+						context: context,
 						builder: (BuildContext context) => AlertDialog(
-							title: Text('Atenção'),
-							content: Text(
-								'Esta marca/tipo já existe.' +
-								'Deseja juntar as marcas/tipos duplicados?'
-							),
+							title: Text(S.of(context).warning),
+							content: Text(S.of(context).mergeTypesText),
 							actions: [
 								TextButton(
-									child: Text('Não'),
+									child: Text(S.of(context).no),
 									onPressed: () => Navigator.of(context).pop(),
 								),
 								TextButton(
-									child: Text('Sim'),
+									child: Text(S.of(context).yes),
 									onPressed: () {
 										onAccept();
 										Navigator.of(context).pop();
@@ -121,7 +116,7 @@ class _ProductWidget extends State<ProductWidget> {
 								quantity: dquantity,
 								insertIfAbsent: true,
 							);
-							if(!widget.child.renameType(type, newType)) {
+							if (!widget.child.renameType(type, newType)) {
 								Navigator.of(context).pop();
 								showDeleteConfirmationDialog(() => setState(() =>
 									widget.child.mergeType(into: newType, from: type)
@@ -130,7 +125,7 @@ class _ProductWidget extends State<ProductWidget> {
 							}
 							return true;
 						},
-						'Editar produto',
+						S.of(context).Edit(S.of(context).product),
 						name: widget.child.name,
 						price: pd.price,
 						quantity: pd.quantity,
