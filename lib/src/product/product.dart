@@ -331,6 +331,7 @@ class Product extends MapBase<String,ProductData> {
 				),
 			),
 			isScrollControlled: true,
+			backgroundColor: Theme.of(context).colorScheme.surface
 		).then((value) {
 			// nameController.dispose();
 			// priceController.dispose();

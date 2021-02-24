@@ -76,6 +76,7 @@ class _ShoppingListPageState extends State<ShoppingListPage> with WidgetsBinding
 				return true;
 			},
 			child: Scaffold(
+				backgroundColor: Theme.of(context).colorScheme.surface,
 				appBar: AppBar(
 					title: TextButton(
 						child: Text(list.title,
@@ -184,6 +185,7 @@ class _ShoppingListPageState extends State<ShoppingListPage> with WidgetsBinding
 							tooltip: S.of(context).add,
 							icon: Icon(Icons.add),
 							label: Text(S.of(context).currency(total.toStringAsFixed(2))),
+							backgroundColor: Theme.of(context).colorScheme.secondary,
 						);
 					},
 				),

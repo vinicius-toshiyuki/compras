@@ -1,4 +1,4 @@
-package com.example.tst
+package com.gmail.vtmsugimoto.compras
 
 import androidx.annotation.NonNull;
 import io.flutter.embedding.android.FlutterActivity

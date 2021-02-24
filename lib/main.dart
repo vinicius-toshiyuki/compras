@@ -15,7 +15,7 @@ class ComprasApp extends StatelessWidget {
 			],
 			supportedLocales: S.delegate.supportedLocales,
 			theme: ThemeData(
-				primarySwatch: Colors.blue,
+				primarySwatch: Colors.cyan,
 			),
 			darkTheme: ThemeData.dark(),
 			home: DividerTheme(
@@ -69,6 +69,7 @@ class _ComprasHomePageState extends State<ComprasHomePage> {
 	@override
 	Widget build(BuildContext context) {
 		return Scaffold(
+			backgroundColor: Theme.of(context).colorScheme.surface,
 			appBar: AppBar(
 				leading: Icon(Icons.local_grocery_store),
 				title: Text(S.of(context).title,
@@ -100,52 +101,55 @@ class _ComprasHomePageState extends State<ComprasHomePage> {
 				children: List<Widget>.generate(
 					shoppingLists?.length ?? 0,
 					(int i) {
-						return Column(
+						return Padding(
 							key: Key('Coluna${i}Lista${shoppingLists[i].id}'),
-							mainAxisSize: MainAxisSize.min,
-							children: <Widget>[
-								Dismissible(
-									key: Key('Lista${shoppingLists[i].id}'),
-									child: TextButton(
-										child: ShoppingListWidget(
-											list: shoppingLists[i]
+							padding: EdgeInsets.symmetric(vertical: 8),
+							child: Column(
+								mainAxisSize: MainAxisSize.min,
+								children: <Widget>[
+									Dismissible(
+										key: Key('Lista${shoppingLists[i].id}'),
+										child: TextButton(
+											child: ShoppingListWidget(
+												list: shoppingLists[i]
+											),
+											onPressed: () {
+												Navigator.of(context).pushNamed(
+													ShoppingListPage.routeName,
+													arguments: {
+														'loadedList': shoppingLists[i],
+													}
+												).then((val) {
+													if (shoppingLists[i].length == 0) _dbManager.deleteShoppingList(shoppingLists[i].id);
+													_updateLists();
+												});
+											},
 										),
-										onPressed: () {
-											Navigator.of(context).pushNamed(
-												ShoppingListPage.routeName,
-												arguments: {
-													'loadedList': shoppingLists[i],
-												}
-											).then((val) {
-												if (shoppingLists[i].length == 0) _dbManager.deleteShoppingList(shoppingLists[i].id);
-												_updateLists();
-											});
+										onDismissed: (direction) {
+											_dbManager.deleteShoppingList(shoppingLists.removeAt(i).id).then(
+												(val) => setState(() {})
+											);
 										},
-									),
-									onDismissed: (direction) {
-										_dbManager.deleteShoppingList(shoppingLists.removeAt(i).id).then(
-											(val) => setState(() {})
-										);
-									},
-									background: Container(
-										height: 50,
-										padding: EdgeInsets.symmetric(horizontal: 15),
-										alignment: Alignment.centerLeft,
-										color: Theme.of(context).colorScheme.error,
-										child: Icon(Icons.remove,
-											color: Theme.of(context).colorScheme.onError,
+										background: Container(
+											height: 50,
+											padding: EdgeInsets.symmetric(horizontal: 15),
+											alignment: Alignment.centerLeft,
+											color: Theme.of(context).colorScheme.error,
+											child: Icon(Icons.remove,
+												color: Theme.of(context).colorScheme.onError,
+											),
+										),
+										secondaryBackground: Container(
+											padding: EdgeInsets.symmetric(horizontal: 15),
+											alignment: Alignment.centerRight,
+											color: Theme.of(context).colorScheme.error,
+											child: Icon(Icons.remove,
+												color: Theme.of(context).colorScheme.onError,
+											),
 										),
 									),
-									secondaryBackground: Container(
-										padding: EdgeInsets.symmetric(horizontal: 15),
-										alignment: Alignment.centerRight,
-										color: Theme.of(context).colorScheme.error,
-										child: Icon(Icons.remove,
-											color: Theme.of(context).colorScheme.onError,
-										),
-									),
-								),
-							] + (i == shoppingLists.length - 1 ? [] : [Divider()]),
+								] + (i == shoppingLists.length - 1 ? [] : [Divider()]),
+							),
 						);
 					},
 				),
@@ -158,6 +162,7 @@ class _ComprasHomePageState extends State<ComprasHomePage> {
 						.pushNamed(ShoppingListPage.routeName)
 						.then((val) => _updateLists());
 				},
+				backgroundColor: Theme.of(context).colorScheme.secondary,
 			),
 		);
 	}
