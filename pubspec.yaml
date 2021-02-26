@@ -66,12 +66,12 @@ flutter:
   # in this "flutter" section. Each entry in this list should have a
   # "family" key with the font family name, and a "fonts" key with a
   # list giving the asset and other descriptors for the font. For
-  fonts:
-    - family: Rosanna
-      fonts:
-        - asset: fonts/Rosanna-Regular.ttf
-        - asset: fonts/Rosanna-Italic.ttf
-          style: italic
+  # fonts:
+  #   - family: Rosanna
+  #     fonts:
+  #       - asset: fonts/Rosanna-Regular.ttf
+  #       - asset: fonts/Rosanna-Italic.ttf
+  #         style: italic
 
   #   - family: Trajan Pro
   #     fonts:
