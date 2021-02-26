@@ -1,5 +1,8 @@
+import 'dart:math' as Math;
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:Compras/Compras.dart';
 
 void main() => runApp(ComprasApp());
@@ -16,8 +19,14 @@ class ComprasApp extends StatelessWidget {
 			supportedLocales: S.delegate.supportedLocales,
 			theme: ThemeData(
 				primarySwatch: Colors.cyan,
+				textTheme: GoogleFonts.balooChettanTextTheme(),
 			),
-			darkTheme: ThemeData.dark(),
+			darkTheme: ThemeData.dark().copyWith(
+				textTheme: GoogleFonts.balooChettanTextTheme().apply(
+					displayColor: ThemeData.dark().textTheme.headline1.color,
+					bodyColor: ThemeData.dark().textTheme.bodyText1.color,
+				),
+			),
 			home: DividerTheme(
 				child: ComprasHomePage(),
 				data: DividerTheme.of(context).copyWith(
@@ -26,13 +35,27 @@ class ComprasApp extends StatelessWidget {
 					space: 0,
 				),
 			),
-			routes: <String, WidgetBuilder> {
-				ShoppingListPage.routeName: (BuildContext context) {
-					final Map<String,dynamic> args = ModalRoute.of(context).settings.arguments ?? Map();
-					return ShoppingListPage(
-						loadedList: args.putIfAbsent('loadedList', () => null),
-					);
-				},
+			onGenerateRoute: (settings) {
+				// if (settings.name == ShoppingListPage.routeName);
+				return PageRouteBuilder(
+					barrierColor: Colors.black26,
+					opaque: true,
+					pageBuilder: (context, animation, secondaryAnimation) {
+						final Map<String,dynamic> args = ModalRoute.of(context).settings.arguments ?? Map();
+						return ShoppingListPage(
+							loadedList: args.putIfAbsent('loadedList', () => null),
+						);
+					},
+					transitionsBuilder: (context, animation, secondaryAnimation, child) {
+						return SlideTransition(
+							position: Tween<Offset>(
+								begin: Offset(1, 0),
+								end: Offset.zero,
+							).animate(animation),
+							child: child
+						);
+					},
+				);
 			},
 			debugShowCheckedModeBanner: false,
 		);
@@ -68,13 +91,80 @@ class _ComprasHomePageState extends State<ComprasHomePage> {
 
 	@override
 	Widget build(BuildContext context) {
+		Widget title = Stack(
+			alignment: Alignment.center,
+			children: [
+				Positioned(
+					top: 12,
+					right: 0,
+					height: 40.0,
+					width: 40.0,
+					child: ImageFiltered(
+						imageFilter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+						child: Transform.rotate(
+							angle: Math.pi / 180 * 25,
+							alignment: Alignment.center,
+							child: Image.asset('res/images/logo_android.png',
+								color: Theme.of(context).colorScheme.surface.withOpacity(0.75),
+							),
+						),
+					),
+				),
+				Positioned(
+					top: 12,
+					right: 0,
+					height: 40.0,
+					width: 40.0,
+					child: Transform.rotate(
+						angle: Math.pi / 180 * 25,
+						alignment: Alignment.center,
+						child: Image.asset('res/images/logo_android.png'),
+					),
+				),
+				Row(
+					mainAxisSize: MainAxisSize.min,
+					children: [
+						RichText(
+							text: TextSpan(
+								text: S.of(context).title[0],
+								style: Theme.of(context).textTheme.headline6.copyWith(
+									fontFamily: 'Rosanna',
+									fontSize: 64,
+								),
+								children: [
+									TextSpan(
+										text: S.of(context).title.substring(1),
+										style: Theme.of(context).textTheme.headline6.copyWith(
+											fontFamily: 'Rosanna',
+											fontSize: 48,
+										),
+									),
+								],
+							),
+							overflow: TextOverflow.ellipsis,
+						),
+						SizedBox(width: 15.0),
+					],
+				),
+			],
+		);
+
 		return Scaffold(
 			backgroundColor: Theme.of(context).colorScheme.surface,
 			appBar: AppBar(
-				leading: Icon(Icons.local_grocery_store),
-				title: Text(S.of(context).title,
-					overflow: TextOverflow.ellipsis,
-				),
+				// leading: Padding(
+				// 	padding: EdgeInsets.all(8.0),
+				// 	child: Container(
+				// 		padding: EdgeInsets.all(4),
+				// 		child: Image.asset('res/images/logo_android.png'),
+				// 		decoration: BoxDecoration(
+				// 			color: Colors.white,
+				// 			borderRadius: BorderRadius.all(Radius.circular(25)),
+				// 		),
+				// 	),
+				// ),
+				centerTitle: true,
+				title: title,
 				// actions: [
 				// 	IconButton(
 				// 		icon: Icon(Icons.delete),
@@ -82,7 +172,17 @@ class _ComprasHomePageState extends State<ComprasHomePage> {
 				// 	),
 				// ],
 			),
-			body: ReorderableListView(
+			body: (shoppingLists?.length ?? 0) > 0 ? ReorderableListView(
+				header: Container(
+					alignment: Alignment.center,
+					child: Padding(
+						padding: EdgeInsets.all(8.0),
+						child: Text(S.of(context).lists_title,
+							style: Theme.of(context).textTheme.headline5,
+						),
+					),
+				),
+				padding: EdgeInsets.all(8.0),
 				onReorder: (oldIndex, newIndex) => setState(() {
 					final moved = shoppingLists.removeAt(oldIndex);
 					if (newIndex > shoppingLists.length)
@@ -101,57 +201,102 @@ class _ComprasHomePageState extends State<ComprasHomePage> {
 				children: List<Widget>.generate(
 					shoppingLists?.length ?? 0,
 					(int i) {
-						return Padding(
+						return Column(
 							key: Key('Coluna${i}Lista${shoppingLists[i].id}'),
-							padding: EdgeInsets.symmetric(vertical: 8),
-							child: Column(
-								mainAxisSize: MainAxisSize.min,
-								children: <Widget>[
-									Dismissible(
-										key: Key('Lista${shoppingLists[i].id}'),
-										child: TextButton(
-											child: ShoppingListWidget(
-												list: shoppingLists[i]
-											),
-											onPressed: () {
-												Navigator.of(context).pushNamed(
-													ShoppingListPage.routeName,
-													arguments: {
-														'loadedList': shoppingLists[i],
-													}
-												).then((val) {
-													if (shoppingLists[i].length == 0) _dbManager.deleteShoppingList(shoppingLists[i].id);
-													_updateLists();
-												});
-											},
+							mainAxisSize: MainAxisSize.min,
+							children: <Widget>[
+								Dismissible(
+									key: Key('Lista${shoppingLists[i].id}'),
+									child: TextButton(
+										child: ShoppingListWidget(
+											list: shoppingLists[i]
 										),
-										onDismissed: (direction) {
-											_dbManager.deleteShoppingList(shoppingLists.removeAt(i).id).then(
-												(val) => setState(() {})
-											);
+										onPressed: () {
+											Navigator.of(context).pushNamed(
+												ShoppingListPage.routeName,
+												arguments: {
+													'loadedList': shoppingLists[i],
+												}
+											).then((val) {
+												if (shoppingLists[i].length == 0) _dbManager.deleteShoppingList(shoppingLists[i].id);
+												_updateLists();
+											});
 										},
-										background: Container(
-											height: 50,
-											padding: EdgeInsets.symmetric(horizontal: 15),
-											alignment: Alignment.centerLeft,
-											color: Theme.of(context).colorScheme.error,
-											child: Icon(Icons.remove,
-												color: Theme.of(context).colorScheme.onError,
-											),
+									),
+									onDismissed: (direction) {
+										_dbManager.deleteShoppingList(shoppingLists.removeAt(i).id).then(
+											(val) => setState(() {})
+										);
+									},
+									background: Container(
+										height: 50,
+										padding: EdgeInsets.symmetric(horizontal: 15),
+										alignment: Alignment.centerLeft,
+										color: Theme.of(context).colorScheme.error,
+										child: Icon(Icons.remove,
+											color: Theme.of(context).colorScheme.onError,
 										),
-										secondaryBackground: Container(
-											padding: EdgeInsets.symmetric(horizontal: 15),
-											alignment: Alignment.centerRight,
-											color: Theme.of(context).colorScheme.error,
-											child: Icon(Icons.remove,
-												color: Theme.of(context).colorScheme.onError,
+									),
+									secondaryBackground: Container(
+										padding: EdgeInsets.symmetric(horizontal: 15),
+										alignment: Alignment.centerRight,
+										color: Theme.of(context).colorScheme.error,
+										child: Icon(Icons.remove,
+											color: Theme.of(context).colorScheme.onError,
+										),
+									),
+								),
+							] + (i == shoppingLists.length - 1 ? [] : [Divider()]),
+						);
+					},
+				),
+			) : Container(
+				alignment: Alignment.center,
+				child: Opacity(
+					child: Column(
+						mainAxisAlignment: MainAxisAlignment.center,
+						children: [
+							Stack(
+								alignment: Alignment.center,
+								children: [
+									SizedBox(width: 140),
+									Positioned(
+										bottom: 0,
+										height: 30,
+										width: 140,
+										child: Container(
+											decoration: BoxDecoration(
+												gradient: LinearGradient(
+													begin: Alignment.topCenter,
+													end: Alignment.bottomCenter,
+													colors: [
+														Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+														Theme.of(context).colorScheme.onSurface.withOpacity(0.0),
+													],
+												),
+												borderRadius: BorderRadius.only(
+													topLeft: Radius.circular(15),
+													topRight: Radius.circular(15),
+												),
 											),
 										),
 									),
-								] + (i == shoppingLists.length - 1 ? [] : [Divider()]),
+									Padding(
+										padding: EdgeInsets.only(bottom: 10.0),
+										child: Image.asset('res/images/blob.png',
+											width: 100,
+											alignment: Alignment.center,
+										),
+									),
+								],
 							),
-						);
-					},
+							SizedBox(height: 16.0),
+							Text(S.of(context).nothing_to_see,
+								style: Theme.of(context).textTheme.headline6,
+							),
+						],
+					),
+					opacity: 0.2,
 				),
 			),
 			floatingActionButton: FloatingActionButton(

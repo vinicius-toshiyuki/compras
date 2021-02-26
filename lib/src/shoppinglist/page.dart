@@ -80,7 +80,7 @@ class _ShoppingListPageState extends State<ShoppingListPage> with WidgetsBinding
 				appBar: AppBar(
 					title: TextButton(
 						child: Text(list.title,
-							style: Theme.of(context).primaryTextTheme.headline6,
+							style: Theme.of(context).textTheme.headline6,
 							overflow: TextOverflow.ellipsis,
 						),
 						onPressed: () {

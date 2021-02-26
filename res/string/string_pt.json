@@ -37,5 +37,8 @@
 	"type": "marca/tipo",
 	"currency": "R\$${value}",
 
+	"lists_title": "Listas de compras",
+	"nothing_to_see": "Nada para ver aqui",
+
 	"mergeTypesText": "Esta marca/tipo já existe. Deseja juntar as marcas/tipos duplicados?"
 }

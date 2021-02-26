@@ -37,5 +37,8 @@
 	"type": "品種",
 	"currency": "${value}円",
 
+	"lists_title": "買い物リスト",
+	"nothing_to_see": "記録はありません",
+
 	"mergeTypesText": "この品種はもう追加されています. 複写品種を結合します？"
 }

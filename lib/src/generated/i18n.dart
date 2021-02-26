@@ -146,6 +146,14 @@ class S {
     return Intl.message("\$${value}", name: 'currency', args: [value]);
   }
 
+  String get lists_title {
+    return Intl.message("Shopping lists", name: 'lists_title');
+  }
+
+  String get nothing_to_see {
+    return Intl.message("Nothing to see here", name: 'nothing_to_see');
+  }
+
   String get mergeTypesText {
     return Intl.message("This brand/type already exists. Merge duplicated brands/types?", name: 'mergeTypesText');
   }

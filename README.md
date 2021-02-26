@@ -9,3 +9,7 @@ flutter pub run flutter_launcher_icons:main
 flutter pub run gen_lang:generate --output-dir lib/src/generated
 flutter run
 ```
+
+## Fontes
+
+[Rosanna](https://www.dafont.com/pt/rosanna.font)

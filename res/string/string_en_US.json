@@ -37,5 +37,8 @@
 	"type": "Brand/type",
 	"currency": "\$${value}",
 
+	"lists_title": "Shopping lists",
+	"nothing_to_see": "Nothing to see here",
+
 	"mergeTypesText": "This brand/type already exists. Merge duplicated brands/types?"
 }

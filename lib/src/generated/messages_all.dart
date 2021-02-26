@@ -38,6 +38,8 @@ class $en_US extends MessageLookupByLibrary {
 		"quanity" : MessageLookupByLibrary.simpleMessage("quantity"),
 		"type" : MessageLookupByLibrary.simpleMessage("Brand/type"),
 		"currency" : (value) => "\$${value}",
+		"lists_title" : MessageLookupByLibrary.simpleMessage("Shopping lists"),
+		"nothing_to_see" : MessageLookupByLibrary.simpleMessage("Nothing to see here"),
 		"mergeTypesText" : MessageLookupByLibrary.simpleMessage("This brand/type already exists. Merge duplicated brands/types?"),
 
   };
@@ -74,6 +76,8 @@ class $ja extends MessageLookupByLibrary {
 		"quanity" : MessageLookupByLibrary.simpleMessage("量"),
 		"type" : MessageLookupByLibrary.simpleMessage("品種"),
 		"currency" : (value) => "${value}円",
+		"lists_title" : MessageLookupByLibrary.simpleMessage("買い物リスト"),
+		"nothing_to_see" : MessageLookupByLibrary.simpleMessage("記録はありません"),
 		"mergeTypesText" : MessageLookupByLibrary.simpleMessage("この品種はもう追加されています. 複写品種を結合します？"),
 
   };
@@ -110,6 +114,8 @@ class $pt extends MessageLookupByLibrary {
 		"quanity" : MessageLookupByLibrary.simpleMessage("quantidade"),
 		"type" : MessageLookupByLibrary.simpleMessage("marca/tipo"),
 		"currency" : (value) => "R\$${value}",
+		"lists_title" : MessageLookupByLibrary.simpleMessage("Listas de compras"),
+		"nothing_to_see" : MessageLookupByLibrary.simpleMessage("Nada para ver aqui"),
 		"mergeTypesText" : MessageLookupByLibrary.simpleMessage("Esta marca/tipo já existe. Deseja juntar as marcas/tipos duplicados?"),
 
   };
