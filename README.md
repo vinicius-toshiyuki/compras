@@ -1,7 +1,7 @@
 # Compras
 [![Codemagic build status](https://api.codemagic.io/apps/60285b7d723629b11d05a8aa/60285b7d723629b11d05a8a9/status_badge.svg)](https://codemagic.io/apps/60285b7d723629b11d05a8aa/60285b7d723629b11d05a8a9/latest_build)
 
-![Logo](./res/images/logo_android.png#thumbnail)
+<img src="./res/images/logo_android.png" width="256pt" alt="Logo" />
 
 É só para fazer lista de compras.
 
