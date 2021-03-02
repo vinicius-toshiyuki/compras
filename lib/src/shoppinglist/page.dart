@@ -60,9 +60,9 @@ class _ShoppingListPageState extends State<ShoppingListPage> with WidgetsBinding
 				.reduce((val, el) => val + el) : 0;
 	}
 
-	void _save() {
+	Future<void> _save() async {
 		if (list.length > 0)
-			_dbManager.insertShoppingList(list);
+			await _dbManager.insertShoppingList(list);
 	}
 
 	@override
@@ -72,7 +72,7 @@ class _ShoppingListPageState extends State<ShoppingListPage> with WidgetsBinding
 
 		return WillPopScope(
 			onWillPop: () async {
-				_save();
+				await _save();
 				return true;
 			},
 			child: Scaffold(
@@ -185,7 +185,6 @@ class _ShoppingListPageState extends State<ShoppingListPage> with WidgetsBinding
 							tooltip: S.of(context).add,
 							icon: Icon(Icons.add),
 							label: Text(S.of(context).currency(total.toStringAsFixed(2))),
-							backgroundColor: Theme.of(context).colorScheme.secondary,
 						);
 					},
 				),

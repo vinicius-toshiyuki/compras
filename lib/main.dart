@@ -1,11 +1,12 @@
 import 'dart:math' as Math;
 import 'dart:ui';
-import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:google_fonts/google_fonts.dart';
+
 import 'package:Compras/Compras.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 void main() {
 	LicenseRegistry.addLicense(() async* {
@@ -21,6 +22,7 @@ void main() {
 class ComprasApp extends StatelessWidget {
 	@override
 	Widget build(BuildContext context) {
+		final theme = Theme.of(context);
 		return MaterialApp(
 			localizationsDelegates: [
 				S.delegate,
@@ -31,16 +33,19 @@ class ComprasApp extends StatelessWidget {
 			theme: ThemeData(
 				primarySwatch: Colors.cyan,
 				textTheme: GoogleFonts.balooChettanTextTheme(),
+				floatingActionButtonTheme: theme.floatingActionButtonTheme,
 			),
 			darkTheme: ThemeData.dark().copyWith(
 				textTheme: GoogleFonts.balooChettanTextTheme().apply(
 					displayColor: ThemeData.dark().textTheme.headline1.color,
 					bodyColor: ThemeData.dark().textTheme.bodyText1.color,
 				),
+				textSelectionColor: Colors.cyan.shade600,
+				floatingActionButtonTheme: ThemeData.dark().floatingActionButtonTheme,
 			),
 			home: DividerTheme(
 				child: ComprasHomePage(),
-				data: DividerTheme.of(context).copyWith(
+				data: theme.dividerTheme.copyWith(
 					indent: 15,
 					endIndent: 15,
 					space: 0,
@@ -52,7 +57,7 @@ class ComprasApp extends StatelessWidget {
 					barrierColor: Colors.black26,
 					opaque: true,
 					pageBuilder: (context, animation, secondaryAnimation) {
-						final Map<String,dynamic> args = ModalRoute.of(context).settings.arguments ?? Map();
+						final Map<String,dynamic> args = settings.arguments ?? Map();
 						return ShoppingListPage(
 							loadedList: args.putIfAbsent('loadedList', () => null),
 						);
@@ -83,6 +88,7 @@ class _ComprasHomePageState extends State<ComprasHomePage> {
 
 	@override
 	Widget build(BuildContext context) {
+		final theme = Theme.of(context);
 		Widget title = Stack(
 			alignment: Alignment.center,
 			children: [
@@ -97,7 +103,7 @@ class _ComprasHomePageState extends State<ComprasHomePage> {
 							angle: Math.pi / 180 * 25,
 							alignment: Alignment.center,
 							child: Image.asset('res/images/logo_android.png',
-								color: Theme.of(context).colorScheme.surface.withOpacity(0.75),
+								color: theme.colorScheme.surface.withOpacity(0.75),
 							),
 						),
 					),
@@ -126,21 +132,22 @@ class _ComprasHomePageState extends State<ComprasHomePage> {
 									TextSpan(
 										text: S.of(context).title.substring(1),
 										style: GoogleFonts.kaushanScript(
-											fontSize: 24.0,
+											letterSpacing: -2.5,
+											fontSize: 28.0,
 										),
 									),
 								],
 							),
 							overflow: TextOverflow.ellipsis,
 						),
-						SizedBox(width: 15.0),
+						SizedBox(width: 20.0),
 					],
 				),
 			],
 		);
 
 		return Scaffold(
-			backgroundColor: Theme.of(context).colorScheme.surface,
+			backgroundColor: theme.colorScheme.surface,
 			appBar: AppBar(
 				centerTitle: true,
 				title: title,
@@ -164,12 +171,12 @@ class _ComprasHomePageState extends State<ComprasHomePage> {
 								child: Padding(
 									padding: EdgeInsets.all(8.0),
 									child: Text(S.of(context).lists_title,
-										style: Theme.of(context).textTheme.headline5,
+										style: theme.textTheme.headline5,
 									),
 								),
 							),
 							padding: EdgeInsets.all(8.0),
-							onReorder: (oldIndex, newIndex) => setState(() {
+							onReorder: (oldIndex, newIndex) {
 								final moved = shoppingLists.removeAt(oldIndex);
 								if (newIndex > shoppingLists.length)
 									newIndex = shoppingLists.length;
@@ -178,12 +185,14 @@ class _ComprasHomePageState extends State<ComprasHomePage> {
 								List<int> idxs = [oldIndex, newIndex]..sort();
 
 								int i = idxs.first;
+								List<Future<void>> insertions = [];
 								for(final list in shoppingLists
 									..getRange(idxs.first, idxs.last + 1)
 									..forEach((list) => list.order = i++)
 									..getRange(idxs.first, idxs.last + 1))
-									_dbManager.insertShoppingList(list);
-							}),
+									insertions.add(_dbManager.insertShoppingList(list));
+								Future.wait(insertions).then((val) => setState(() {}));
+							},
 							children: List<Widget>.generate(
 								shoppingLists?.length ?? 0,
 								(int i) {
@@ -205,32 +214,35 @@ class _ComprasHomePageState extends State<ComprasHomePage> {
 															}
 														).then((val) {
 															if (shoppingLists[i].length == 0)
-																setState(() =>
-																	_dbManager.deleteShoppingList(shoppingLists[i].id)
-																);
+																_dbManager
+																	.deleteShoppingList(shoppingLists[i].id)
+																	.then((val) => setState(() {}));
+															else
+																setState(() {});
 														});
 													},
 												),
 												onDismissed: (direction) {
-													_dbManager.deleteShoppingList(shoppingLists.removeAt(i).id).then(
-														(val) => setState(() {})
+													_dbManager
+														.deleteShoppingList(shoppingLists.removeAt(i).id)
+														.then((val) => setState(() {})
 													);
 												},
 												background: Container(
 													height: 50,
 													padding: EdgeInsets.symmetric(horizontal: 15),
 													alignment: Alignment.centerLeft,
-													color: Theme.of(context).colorScheme.error,
+													color: theme.colorScheme.error,
 													child: Icon(Icons.remove,
-														color: Theme.of(context).colorScheme.onError,
+														color: theme.colorScheme.onError,
 													),
 												),
 												secondaryBackground: Container(
 													padding: EdgeInsets.symmetric(horizontal: 15),
 													alignment: Alignment.centerRight,
-													color: Theme.of(context).colorScheme.error,
+													color: theme.colorScheme.error,
 													child: Icon(Icons.remove,
-														color: Theme.of(context).colorScheme.onError,
+														color: theme.colorScheme.onError,
 													),
 												),
 											),
@@ -260,8 +272,8 @@ class _ComprasHomePageState extends State<ComprasHomePage> {
 																begin: Alignment.topCenter,
 																end: Alignment.bottomCenter,
 																colors: [
-																	Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
-																	Theme.of(context).colorScheme.onSurface.withOpacity(0.0),
+																	theme.colorScheme.onSurface.withOpacity(0.6),
+																	theme.colorScheme.onSurface.withOpacity(0.0),
 																],
 															),
 															borderRadius: BorderRadius.only(
@@ -282,7 +294,7 @@ class _ComprasHomePageState extends State<ComprasHomePage> {
 										),
 										SizedBox(height: 16.0),
 										Text(S.of(context).nothing_to_see,
-											style: Theme.of(context).textTheme.headline6,
+											style: theme.textTheme.headline6,
 										),
 									],
 								),
@@ -301,7 +313,6 @@ class _ComprasHomePageState extends State<ComprasHomePage> {
 						.pushNamed(ShoppingListPage.routeName)
 						.then((val) => setState(() {}));
 				},
-				backgroundColor: Theme.of(context).colorScheme.secondary,
 			),
 		);
 	}
