@@ -1,34 +1,16 @@
-# Compras
-[![Codemagic build status](https://api.codemagic.io/apps/60285b7d723629b11d05a8aa/60285b7d723629b11d05a8a9/status_badge.svg)](https://codemagic.io/apps/60285b7d723629b11d05a8aa/60285b7d723629b11d05a8a9/latest_build)
+# compras
 
-<img src="./res/images/logo_android.png" width="256pt" alt="Logo" />
+A new Flutter project.
 
-É só para fazer lista de compras.
+## Getting Started
 
-## Compilação
+This project is a starting point for a Flutter application.
 
-### Android
+A few resources to get you started if this is your first Flutter project:
 
-```
-flutter pub run flutter_launcher_icons:main
-flutter pub run gen_lang:generate --output-dir lib/src/generated
-flutter build apk
-```
+- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
+- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
 
-### IOS
-
-Nunca testado. Sem Mac, sem build.
-
-```
-flutter pub run flutter_launcher_icons:main
-flutter pub run gen_lang:generate --output-dir lib/src/generated
-flutter build ios
-```
-
-## Fontes
-
-[Baloo Chettan 2](https://fonts.google.com/specimen/Baloo+Chettan+2)
-[Kaushan Script](https://fonts.google.com/specimen/Kaushan+Script)
-
-# Licença
-[MIT License](./LICENSE)
+For help getting started with Flutter, view our
+[online documentation](https://flutter.dev/docs), which offers tutorials,
+samples, guidance on mobile development, and a full API reference.

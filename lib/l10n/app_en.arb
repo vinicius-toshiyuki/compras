@@ -1,0 +1,40 @@
+{
+	"title": "Compras",
+
+	"newm": "New",
+	"newf": "New",
+	"rename": "Rename",
+	"removem": "removed",
+	"removef": "removed",
+	"edit": "Edit",
+	"modifiedInm": "Modified in",
+	"modifiedInf": "Modified in",
+	"createdInm": "Created in",
+	"createdInf": "Created in",
+
+	"dateformat": "MM/dd/yyyy HH:mm",
+
+	"confirm": "Confirm",
+	"ok": "OK",
+	"cancel": "Cancel",
+	"yes": "Yes",
+	"no": "No",
+	"undo": "Undo",
+	"add": "Add",
+	"warning": "Warning",
+
+	"name": "name",
+	"list": "list",
+	"item": "item",
+	"product": "product",
+	"shoppinglist": "shopping list",
+	"price": "price",
+	"quanity": "quantity",
+	"type": "Brand/type",
+	"currency": "$",
+
+	"lists_title": "Shopping lists",
+	"nothing_to_see": "Nothing to see here",
+
+	"mergeTypesText": "This brand/type already exists. Merge duplicated brands/types?"
+}

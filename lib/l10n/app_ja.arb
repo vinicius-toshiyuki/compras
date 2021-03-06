@@ -1,0 +1,40 @@
+ {
+	"title": "Compras",
+
+	"newm": "新",
+	"newf": "新",
+	"rename": "リネーム",
+	"removem": "削除されました",
+	"removef": "削除されました",
+	"edit": "修正",
+	"modifiedInm": "最終更新：",
+	"modifiedInf": "最終更新：",
+	"createdInm": "追加日付：",
+	"createdInf": "追加日付：",
+
+	"dateformat": "yyyy/MM/dd HH:mm",
+
+	"confirm": "確定",
+	"ok": "OK",
+	"cancel": "キャンセル",
+	"yes": "はい",
+	"no": "いいえ",
+	"undo": "アンドゥ",
+	"add": "追加",
+	"warning": "警告",
+
+	"name": "名前",
+	"list": "リスト",
+	"item": "アイテム",
+	"product": "品物",
+	"shoppinglist": "買い物リスト",
+	"price": "値段",
+	"quanity": "量",
+	"type": "品種",
+	"currency": "円",
+
+	"lists_title": "買い物リスト",
+	"nothing_to_see": "記録はありません",
+
+	"mergeTypesText": "この品種はもう追加されています. 複写品種を結合します？"
+}

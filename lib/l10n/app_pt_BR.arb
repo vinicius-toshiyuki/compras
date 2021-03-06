@@ -1,0 +1,40 @@
+{
+	"title": "Compras",
+
+	"newm": "Novo",
+	"newf": "Nova",
+	"rename": "Renomear",
+	"removem": "removido",
+	"removef": "removida",
+	"edit": "Editar",
+	"modifiedInm": "Modificado em",
+	"modifiedInf": "Modificada em",
+	"createdInm": "Criado em",
+	"createdInf": "Criada em",
+
+	"dateformat": "dd/MM/yyyy HH:mm",
+
+	"confirm": "Confirmar",
+	"ok": "OK",
+	"cancel": "Cancelar",
+	"yes": "Sim",
+	"no": "Não",
+	"undo": "Desfazer",
+	"add": "Adicionar",
+	"warning": "Atenção",
+
+	"name": "nome",
+	"list": "lista",
+	"item": "item",
+	"product": "produto",
+	"shoppinglist": "lista de compras",
+	"price": "preço",
+	"quanity": "quantidade",
+	"type": "marca/tipo",
+	"currency": "R$",
+
+	"lists_title": "Listas de compras",
+	"nothing_to_see": "Nada para ver aqui",
+
+	"mergeTypesText": "Esta marca/tipo já existe. Deseja juntar as marcas/tipos duplicados?"
+}
