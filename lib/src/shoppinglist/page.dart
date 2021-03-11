@@ -136,7 +136,8 @@ class ShoppingListPageState extends State<ShoppingListPage>
               if (i == list.length) return Container(height: 60);
 
               List<MapEntry<String, Product>> removed = [];
-              ProductWidget product = ProductWidget(listEntries[i].value, parent: this);
+              ProductWidget product =
+                  ProductWidget(listEntries[i].value, parent: this);
               return Dismissible(
                 key: Key('$i${list.length}'),
                 child: product,
@@ -145,13 +146,14 @@ class ShoppingListPageState extends State<ShoppingListPage>
                   list.remove(removed.last.key);
 
                   scaffoldMessenger
-                      .showSnackBar(SnackBar(
-                        content: Text(
-                            '${toCapitalized(loc.item)} ${loc.removem}'),
-                        action: SnackBarAction(
-                          label: loc.undo,
-                          onPressed: () => list.fromEntries(
-                              listEntries..insert(i, removed.first))),
+                      .showSnackBar(
+                        SnackBar(
+                          content:
+                              Text('${toCapitalized(loc.item)} ${loc.removem}'),
+                          action: SnackBarAction(
+                              label: loc.undo,
+                              onPressed: () => list.fromEntries(
+                                  listEntries..insert(i, removed.first))),
                         ),
                       )
                       .closed

@@ -33,10 +33,12 @@ class ShoppingListWidget extends StatelessWidget {
           Container(
             height: 5,
           ),
-          Text('${loc.modifiedInf} ${DateFormat(loc.dateformat).format(list.dateModified)}',
+          Text(
+            '${loc.modifiedInf} ${DateFormat(loc.dateformat).format(list.dateModified)}',
             style: Theme.of(context).textTheme.caption,
           ),
-          Text('${loc.createdInf} ${DateFormat(loc.dateformat).format(list.dateCreated)}',
+          Text(
+            '${loc.createdInf} ${DateFormat(loc.dateformat).format(list.dateCreated)}',
             style: Theme.of(context).textTheme.caption,
           ),
         ],

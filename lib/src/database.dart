@@ -35,28 +35,28 @@ class DatabaseManager {
     )
     """;
   static const String _createProductTable = """
-              create table $productTable (
-                $id INTEGER NOT NULL,
-                $productName TEXT NOT NULL,
-                $order INTEGER,
-                FOREIGN Key ($id) REFERENCES $shoppinglistTable ($id)
-                ON DELETE CASCADE,
-                PRIMARY KEY ($id, $productName),
-                UNIQUE ($order, $id)
-              )
-              """;
+    create table $productTable (
+      $id INTEGER NOT NULL,
+      $productName TEXT NOT NULL,
+      $order INTEGER,
+      FOREIGN Key ($id) REFERENCES $shoppinglistTable ($id)
+      ON DELETE CASCADE,
+      PRIMARY KEY ($id, $productName),
+      UNIQUE ($order, $id)
+    )
+    """;
   static const String _createProductDataTable = """
-              CREATE TABLE $productDataTable (
-                $id INTEGER NOT NULL,
-                $productName TEXT NOT NULL,
-                $productDataType TEXT NOT NULL,
-                $productDataPrice REAL,
-                $productDataQuantity REAL,
-                FOREIGN KEY ($id, $productName) REFERENCES $productTable ($id, $productName)
-                ON DELETE CASCADE,
-                PRIMARY KEY ($id, $productName, $productDataType)
-              )
-              """;
+    CREATE TABLE $productDataTable (
+      $id INTEGER NOT NULL,
+      $productName TEXT NOT NULL,
+      $productDataType TEXT NOT NULL,
+      $productDataPrice REAL,
+      $productDataQuantity REAL,
+      FOREIGN KEY ($id, $productName) REFERENCES $productTable ($id, $productName)
+      ON DELETE CASCADE,
+      PRIMARY KEY ($id, $productName, $productDataType)
+    )
+    """;
 
   static const int _version = 1;
   final Future<Database> Function(String) _open;
@@ -277,8 +277,8 @@ class DatabaseManager {
   }
 
   static FutureOr<void> _onCreate(Database db, int version) async {
-        await db.execute(_createShoppingListTable);
-        await db.execute(_createProductTable);
-        await db.execute(_createProductDataTable);
+    await db.execute(_createShoppingListTable);
+    await db.execute(_createProductTable);
+    await db.execute(_createProductDataTable);
   }
 }

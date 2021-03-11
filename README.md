@@ -35,5 +35,15 @@ flutter build [ios|web|windows|macos]
 [Baloo Chettan 2](https://fonts.google.com/specimen/Baloo+Chettan+2)
 [Kaushan Script](https://fonts.google.com/specimen/Kaushan+Script)
 
+### TODO
+
+- [ ] Mudar a fonte e a licença
+- [ ] Salvar as fontes padrão localmente
+- [ ] Checar o texto na *addProductBottomSheet*
+- [ ] Mudar o *buildDefaultDragHanldes* da *ReorderableList*
+- [ ] Mudar a [página](lib/src/shoppinglist/page.dart) para usar *ReorderableList*
+- [ ] Arrumar o título da janela no desktop
+- [ ] Colocar o ícone no aplicativo de desktop
+
 # Licença
 [MIT License](./LICENSE)

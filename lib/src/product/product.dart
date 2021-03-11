@@ -179,171 +179,159 @@ class Product extends MapBase<String, ProductData> {
     Icon confirmIcon() => valid ? checkIcon : errorIcon;
 
     return showModalBottomSheet<void>(
-            context: context,
-            builder: (BuildContext context) {
-              final loc = AppLocalizations.of(context);
-              return StatefulBuilder(
-                  builder: (BuildContext context, StateSetter setSheetState) {
-                bool _submit() {
-                  priceController.text =
-                      priceController.text.replaceAll(',', '.');
-                  quantityController.text =
-                      quantityController.text.replaceAll(',', '.');
-                  bool passed = submit(
-                    nameController.text,
-                    priceController.text,
-                    quantityController.text,
-                    typeController.text,
-                  );
-                  valid = passed;
-                  return passed;
-                }
+        context: context,
+        builder: (BuildContext context) {
+          final loc = AppLocalizations.of(context);
+          return StatefulBuilder(
+              builder: (BuildContext context, StateSetter setSheetState) {
+            bool _submit() {
+              priceController.text = priceController.text.replaceAll(',', '.');
+              quantityController.text =
+                  quantityController.text.replaceAll(',', '.');
+              bool passed = submit(
+                nameController.text,
+                priceController.text,
+                quantityController.text,
+                typeController.text,
+              );
+              valid = passed;
+              return passed;
+            }
 
-                /* = Create and set up text fields ====== */
-                TextField nameField = TextField(
-                  controller: nameController,
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(),
-                    isDense: true,
-                    labelText: toCapitalized(loc.name),
-                  ),
-                  autofocus: true,
-                  textInputAction: TextInputAction.next,
-                  textCapitalization: TextCapitalization.words,
-                  onChanged: (value) => setSheetState(
-                      () => valid = value.isNotEmpty && validNumbers()),
-                );
-
-                TextField priceField = TextField(
-                  controller: priceController,
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(),
-                    isDense: true,
-                    labelText: toCapitalized(loc.price),
-                  ),
-                  keyboardType: TextInputType.number,
-                  textInputAction: TextInputAction.next,
-                  onChanged: (value) => setSheetState(() =>
-                      valid = nameController.text.isNotEmpty && validNumbers()),
-                );
-
-                TextField quantityField = TextField(
-                  controller: quantityController,
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(),
-                    isDense: true,
-                    labelText: toCapitalized(loc.quanity),
-                  ),
-                  keyboardType: TextInputType.number,
-                  textInputAction: TextInputAction.done,
-                  onChanged: (value) => setSheetState(() =>
-                      valid = nameController.text.isNotEmpty && validNumbers()),
-                  onSubmitted: (value) => setState(() {
-                    if (valid && _submit()) Navigator.of(context).pop();
-                  }),
-                );
-
-                TextField typeField = TextField(
-                  controller: typeController,
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(),
-                    isDense: true,
-                    labelText: toCapitalized(loc.type),
-                  ),
-                  textCapitalization: TextCapitalization.words,
-                  textInputAction: TextInputAction.done,
-                  onSubmitted: (value) => setState(() {
-                    if (valid && _submit()) Navigator.of(context).pop();
-                  }),
-                );
-                /* ===================================== */
-
-                return Padding(
-                  padding: EdgeInsets.all(15.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                          Container(
-                            alignment: Alignment.topRight,
-                            child: TextButton.icon(
-                              onPressed: () => setState(() {
-                                if (valid && _submit())
-                                  Navigator.of(context).pop();
-                              }),
-                              label: Text(loc.confirm),
-                              icon: confirmIcon(),
-                            ),
-                          ),
-                          Text(
-                            '$title',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Padding(
-                            padding: EdgeInsets.fromLTRB(0, 15, 0, 5),
-                            child: nameField,
-                          ),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Padding(
-                                    padding: EdgeInsets.only(right: 5),
-                                    child: priceField),
-                              ),
-                              Expanded(
-                                child: Padding(
-                                  padding: EdgeInsets.only(left: 5),
-                                  child: quantityField,
-                                ),
-                              ),
-                            ],
-                          ),
-                          Padding(
-                            padding: EdgeInsets.only(
-                                bottom: expanded
-                                    ? 0
-                                    : MediaQuery.of(context).viewInsets.bottom),
-                            child: IconButton(
-                              icon: Icon(
-                                expanded
-                                    ? Icons.expand_more
-                                    : Icons.expand_less,
-                                color: Theme.of(context)
-                                    .iconTheme
-                                    .color
-                                    .withOpacity(0.54),
-                              ),
-                              onPressed: () => setSheetState(() {
-                                FocusScope.of(context)
-                                    .requestFocus(nameField.focusNode);
-                                expanded = !expanded;
-                              }),
-                              splashRadius: 20,
-                            ),
-                          ),
-                        ] +
-                        (expanded
-                            ? <Widget>[
-                                Padding(
-                                  padding: EdgeInsets.fromLTRB(5, 5, 5,
-                                      MediaQuery.of(context).viewInsets.bottom),
-                                  child: typeField,
-                                ),
-                              ]
-                            : <Widget>[]),
-                  ),
-                );
-              });
-            },
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.vertical(
-                top: Radius.circular(15),
+            /* = Create and set up text fields ====== */
+            TextField nameField = TextField(
+              controller: nameController,
+              decoration: InputDecoration(
+                border: OutlineInputBorder(),
+                isDense: true,
+                labelText: toCapitalized(loc.name),
               ),
-            ),
-            isScrollControlled: true,
-            backgroundColor: Theme.of(context).colorScheme.surface
-    );
+              autofocus: true,
+              textInputAction: TextInputAction.next,
+              textCapitalization: TextCapitalization.words,
+              onChanged: (value) => setSheetState(
+                  () => valid = value.isNotEmpty && validNumbers()),
+            );
+
+            TextField priceField = TextField(
+              controller: priceController,
+              decoration: InputDecoration(
+                border: OutlineInputBorder(),
+                isDense: true,
+                labelText: toCapitalized(loc.price),
+              ),
+              keyboardType: TextInputType.number,
+              textInputAction: TextInputAction.next,
+              onChanged: (value) => setSheetState(() =>
+                  valid = nameController.text.isNotEmpty && validNumbers()),
+            );
+
+            TextField quantityField = TextField(
+              controller: quantityController,
+              decoration: InputDecoration(
+                border: OutlineInputBorder(),
+                isDense: true,
+                labelText: toCapitalized(loc.quanity),
+              ),
+              keyboardType: TextInputType.number,
+              textInputAction: TextInputAction.done,
+              onChanged: (value) => setSheetState(() =>
+                  valid = nameController.text.isNotEmpty && validNumbers()),
+              onSubmitted: (value) => setState(() {
+                if (valid && _submit()) Navigator.of(context).pop();
+              }),
+            );
+
+            TextField typeField = TextField(
+              controller: typeController,
+              decoration: InputDecoration(
+                border: OutlineInputBorder(),
+                isDense: true,
+                labelText: toCapitalized(loc.type),
+              ),
+              textCapitalization: TextCapitalization.words,
+              textInputAction: TextInputAction.done,
+              onSubmitted: (value) => setState(() {
+                if (valid && _submit()) Navigator.of(context).pop();
+              }),
+            );
+            /* ===================================== */
+
+            return Padding(
+              padding: EdgeInsets.all(15.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                      Container(
+                        alignment: Alignment.topRight,
+                        child: TextButton.icon(
+                          onPressed: () => setState(() {
+                            if (valid && _submit()) Navigator.of(context).pop();
+                          }),
+                          label: Text(loc.confirm),
+                          icon: confirmIcon(),
+                        ),
+                      ),
+                      Text(
+                        '$title',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.fromLTRB(0, 15, 0, 5),
+                        child: nameField,
+                      ),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Padding(
+                                padding: EdgeInsets.only(right: 5),
+                                child: priceField),
+                          ),
+                          Expanded(
+                            child: Padding(
+                              padding: EdgeInsets.only(left: 5),
+                              child: quantityField,
+                            ),
+                          ),
+                        ],
+                      ),
+                      IconButton(
+                        icon: Icon(
+                          expanded ? Icons.expand_more : Icons.expand_less,
+                          color: Theme.of(context)
+                              .iconTheme
+                              .color
+                              .withOpacity(0.54),
+                        ),
+                        onPressed: () => setSheetState(() {
+                          FocusScope.of(context)
+                              .requestFocus(nameField.focusNode);
+                          expanded = !expanded;
+                        }),
+                        splashRadius: 20,
+                      ),
+                    ] +
+                    (expanded
+                        ? <Widget>[
+                            Padding(
+                              padding: EdgeInsets.fromLTRB(5, 5, 5, 0),
+                              child: typeField,
+                            ),
+                          ]
+                        : <Widget>[]),
+              ),
+            );
+          });
+        },
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(15),
+          ),
+        ),
+        isScrollControlled: true,
+        backgroundColor: Theme.of(context).colorScheme.surface);
   }
 }

@@ -110,36 +110,36 @@ class _ProductWidgetState extends State<ProductWidget> {
           };
 
           Function() onEdit = () {
-                Product.showAddBottomSheet(
-                  context,
-                  setState,
-                  (name, price, quantity, newType) {
-                    widget.child.name = name;
+            Product.showAddBottomSheet(
+              context,
+              setState,
+              (name, price, quantity, newType) {
+                widget.child.name = name;
 
-                    double dprice = double.tryParse(price) ?? 0;
-                    double dquantity = double.tryParse(quantity) ?? 1;
+                double dprice = double.tryParse(price) ?? 0;
+                double dquantity = double.tryParse(quantity) ?? 1;
 
-                    widget.child.updateData(
-                      type: type,
-                      price: dprice,
-                      quantity: dquantity,
-                      insertIfAbsent: true,
-                    );
-                    if (!widget.child.renameType(type, newType)) {
-                      Navigator.of(context).pop();
-                      showDeleteConfirmationDialog(() => setState(() =>
-                          widget.child.mergeType(into: newType, from: type)));
-                      return false;
-                    }
-                    return true;
-                  },
-                  '${loc.edit} ${loc.product}',
-                  name: widget.child.name,
-                  price: pd.price,
-                  quantity: pd.quantity,
+                widget.child.updateData(
                   type: type,
-                ).then((val) => widget.parent.setState(() {}));
-              };
+                  price: dprice,
+                  quantity: dquantity,
+                  insertIfAbsent: true,
+                );
+                if (!widget.child.renameType(type, newType)) {
+                  Navigator.of(context).pop();
+                  showDeleteConfirmationDialog(() => setState(
+                      () => widget.child.mergeType(into: newType, from: type)));
+                  return false;
+                }
+                return true;
+              },
+              '${loc.edit} ${loc.product}',
+              name: widget.child.name,
+              price: pd.price,
+              quantity: pd.quantity,
+              type: type,
+            ).then((val) => widget.parent.setState(() {}));
+          };
 
           return Padding(
             padding:

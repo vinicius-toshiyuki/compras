@@ -1,5 +1,6 @@
 import 'dart:math' as Math;
 import 'dart:ui';
+import 'dart:io' show Platform;
 
 import 'package:compras/compras.dart';
 import 'package:flutter/foundation.dart';
@@ -7,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:desktop_window/desktop_window.dart';
 
 void main() {
   LicenseRegistry.addLicense(() async* {
@@ -22,8 +24,14 @@ void main() {
 }
 
 class ComprasApp extends StatelessWidget {
+  final _windowSize = Size(350, 450);
+
   @override
   Widget build(BuildContext context) {
+    if (Platform.isLinux || Platform.isMacOS || Platform.isWindows) {
+      DesktopWindow.setMinWindowSize(_windowSize);
+      DesktopWindow.setWindowSize(_windowSize.flipped * 2);
+    }
     final theme = Theme.of(context);
     return MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -35,11 +43,11 @@ class ComprasApp extends StatelessWidget {
       ],
       theme: ThemeData(
         primarySwatch: Colors.cyan,
-        textTheme: GoogleFonts.balooChettanTextTheme(),
+        textTheme: GoogleFonts.sourceSansProTextTheme(),
         floatingActionButtonTheme: theme.floatingActionButtonTheme,
       ),
       darkTheme: ThemeData.dark().copyWith(
-        textTheme: GoogleFonts.balooChettanTextTheme().apply(
+        textTheme: GoogleFonts.sourceSansProTextTheme().apply(
           displayColor: ThemeData.dark().textTheme.headline1.color,
           bodyColor: ThemeData.dark().textTheme.bodyText1.color,
         ),
@@ -90,6 +98,8 @@ class _ComprasHomePageState extends State<ComprasHomePage> {
   List<ShoppingList> shoppingLists;
   DatabaseManager _dbManager = DatabaseManager(ShoppingListDatabase);
 
+  final titleFont = GoogleFonts.kaushanScript();
+
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context);
@@ -131,13 +141,13 @@ class _ComprasHomePageState extends State<ComprasHomePage> {
             RichText(
               text: TextSpan(
                 text: loc.title[0],
-                style: GoogleFonts.kaushanScript(
+                style: titleFont.copyWith(
                   fontSize: 40.0,
                 ),
                 children: [
                   TextSpan(
                     text: loc.title.substring(1),
-                    style: GoogleFonts.kaushanScript(
+                    style: titleFont.copyWith(
                       letterSpacing: -2.5,
                       fontSize: 28.0,
                     ),
@@ -174,7 +184,21 @@ class _ComprasHomePageState extends State<ComprasHomePage> {
                   list.order ??= i++;
                 })
                 ..sort((list1, list2) => list1.order.compareTo(list2.order));
-              child = ReorderableListView(
+              child = ReorderableListView.builder(
+                proxyDecorator: (child, index, animation) {
+                  return Container(
+                      child: child,
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.surface,
+                        borderRadius: BorderRadius.all(Radius.circular(5)),
+                        boxShadow: [
+                          BoxShadow(
+                              blurRadius: animation.value * 6.0,
+                              color: Colors.black26,
+                              offset: Offset.fromDirection(90, 4)),
+                        ],
+                      ));
+                },
                 header: Container(
                   alignment: Alignment.center,
                   child: Padding(
@@ -203,65 +227,65 @@ class _ComprasHomePageState extends State<ComprasHomePage> {
                     insertions.add(_dbManager.insertShoppingList(list));
                   Future.wait(insertions).then((val) => setState(() {}));
                 },
-                children: List<Widget>.generate(
-                  shoppingLists?.length ?? 0,
-                  (int i) {
-                    return Column(
-                      key: Key('Coluna${i}Lista${shoppingLists[i].id}'),
-                      mainAxisSize: MainAxisSize.min,
-                      children: <Widget>[
-                            Dismissible(
-                              key: Key('Lista${shoppingLists[i].id}'),
-                              child: TextButton(
+                itemCount: shoppingLists?.length ?? 0,
+                itemBuilder: (BuildContext context, int i) {
+                  return Column(
+                    key: Key('Coluna${i}Lista${shoppingLists[i].id}'),
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                          Dismissible(
+                            key: Key('Lista${shoppingLists[i].id}'),
+                            child: TextButton(
+                              child: Padding(
+                                padding: const EdgeInsets.only(bottom: 8.0),
                                 child:
                                     ShoppingListWidget(list: shoppingLists[i]),
-                                onPressed: () {
-                                  Navigator.of(context).pushNamed(
-                                      ShoppingListPage.routeName,
-                                      arguments: {
-                                        'loadedList': shoppingLists[i],
-                                      }).then((val) {
-                                    if (shoppingLists[i].length == 0)
-                                      _dbManager
-                                          .deleteShoppingList(
-                                              shoppingLists[i].id)
-                                          .then((val) => setState(() {}));
-                                    else
-                                      setState(() {});
-                                  });
-                                },
                               ),
-                              onDismissed: (direction) {
-                                _dbManager
-                                    .deleteShoppingList(
-                                        shoppingLists.removeAt(i).id)
-                                    .then((val) => setState(() {}));
+                              onPressed: () {
+                                Navigator.of(context).pushNamed(
+                                    ShoppingListPage.routeName,
+                                    arguments: {
+                                      'loadedList': shoppingLists[i],
+                                    }).then((val) {
+                                  if (shoppingLists[i].length == 0)
+                                    _dbManager
+                                        .deleteShoppingList(shoppingLists[i].id)
+                                        .then((val) => setState(() {}));
+                                  else
+                                    setState(() {});
+                                });
                               },
-                              background: Container(
-                                height: 50,
-                                padding: EdgeInsets.symmetric(horizontal: 15),
-                                alignment: Alignment.centerLeft,
-                                color: theme.colorScheme.error,
-                                child: Icon(
-                                  Icons.remove,
-                                  color: theme.colorScheme.onError,
-                                ),
-                              ),
-                              secondaryBackground: Container(
-                                padding: EdgeInsets.symmetric(horizontal: 15),
-                                alignment: Alignment.centerRight,
-                                color: theme.colorScheme.error,
-                                child: Icon(
-                                  Icons.remove,
-                                  color: theme.colorScheme.onError,
-                                ),
+                            ),
+                            onDismissed: (direction) {
+                              _dbManager
+                                  .deleteShoppingList(
+                                      shoppingLists.removeAt(i).id)
+                                  .then((val) => setState(() {}));
+                            },
+                            background: Container(
+                              height: 50,
+                              padding: EdgeInsets.symmetric(horizontal: 15),
+                              alignment: Alignment.centerLeft,
+                              color: theme.colorScheme.error,
+                              child: Icon(
+                                Icons.remove,
+                                color: theme.colorScheme.onError,
                               ),
                             ),
-                          ] +
-                          (i == shoppingLists.length - 1 ? [] : [Divider()]),
-                    );
-                  },
-                ),
+                            secondaryBackground: Container(
+                              padding: EdgeInsets.symmetric(horizontal: 15),
+                              alignment: Alignment.centerRight,
+                              color: theme.colorScheme.error,
+                              child: Icon(
+                                Icons.remove,
+                                color: theme.colorScheme.onError,
+                              ),
+                            ),
+                          ),
+                        ] +
+                        (i == shoppingLists.length - 1 ? [] : [Divider()]),
+                  );
+                },
               );
             } else {
               child = Container(
