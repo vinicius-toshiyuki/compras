@@ -166,11 +166,14 @@ class Product extends MapBase<String, ProductData> {
     );
 
     bool validNumbers() {
+      bool priceIsNumber = !priceController.text.contains(RegExp(r'[^0-9.,]'));
+      bool quantityIsNumber =
+          !quantityController.text.contains(RegExp(r'[^0-9.,]'));
       bool validPrice =
           priceController.text.replaceAll(',', '.').split('.').length <= 2;
       bool validQuantity =
           quantityController.text.replaceAll(',', '.').split('.').length <= 2;
-      return validPrice && validQuantity;
+      return validPrice && validQuantity && priceIsNumber && quantityIsNumber;
     }
 
     bool expanded = false;
@@ -306,22 +309,13 @@ class Product extends MapBase<String, ProductData> {
                               .color
                               .withOpacity(0.54),
                         ),
-                        onPressed: () => setSheetState(() {
-                          FocusScope.of(context)
-                              .requestFocus(nameField.focusNode);
-                          expanded = !expanded;
-                        }),
+                        onPressed: () {
+                          setSheetState(() => expanded = !expanded);
+                        },
                         splashRadius: 20,
                       ),
                     ] +
-                    (expanded
-                        ? <Widget>[
-                            Padding(
-                              padding: EdgeInsets.fromLTRB(5, 5, 5, 0),
-                              child: typeField,
-                            ),
-                          ]
-                        : <Widget>[]),
+                    (expanded ? <Widget>[typeField] : <Widget>[]),
               ),
             );
           });

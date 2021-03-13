@@ -4,6 +4,7 @@ import 'dart:io' show Platform;
 import 'package:compras/compras.dart';
 import 'package:flutter/widgets.dart';
 import 'package:path/path.dart';
+import 'package:xdg_directories/xdg_directories.dart' as xdg;
 import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common/sqlite_api.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
@@ -77,7 +78,7 @@ class DatabaseManager {
       return DatabaseManager._internal(name, (name) async {
         sqfliteFfiInit();
         return databaseFactoryFfi.openDatabase(
-          join(await databaseFactoryFfi.getDatabasesPath(), name),
+          join(xdg.dataHome.path, 'compras', name),
           options: OpenDatabaseOptions(
             onConfigure: _onConfigure,
             onCreate: _onCreate,

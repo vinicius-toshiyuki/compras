@@ -15,18 +15,27 @@ class ProductWidget extends StatefulWidget {
   _ProductWidgetState createState() => _ProductWidgetState();
 }
 
-class _ProductWidgetState extends State<ProductWidget> {
-  bool _expanded = false;
+class _ProductWidgetState extends State<ProductWidget> with RestorationMixin {
+  @override
+  String get restorationId => 'ProductWidget${widget.child.name}';
 
-  IconData get _expandIcon {
-    return _expanded ? Icons.expand_less : Icons.expand_more;
+  @override
+  void restoreState(RestorationBucket oldBucket, bool initialRestore) {
+    registerForRestoration(_expanded, 'expansion state${widget.child.name}');
   }
 
-  void flipExtended() => setState(() => _expanded = !_expanded);
+  RestorableBool _expanded = RestorableBool(false);
+
+  IconData get _expandIcon {
+    return _expanded.value ? Icons.expand_less : Icons.expand_more;
+  }
+
+  void flipExtended() => setState(() => _expanded.value = !_expanded.value);
 
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context);
+    final theme = Theme.of(context);
     List<Widget> info = [
       TextButton(
         child: Container(
@@ -36,10 +45,10 @@ class _ProductWidgetState extends State<ProductWidget> {
             child: Row(
               children: [
                 Padding(
-                  padding: Theme.of(context).buttonTheme.padding,
+                  padding: theme.buttonTheme.padding,
                   child: Icon(
                     _expandIcon,
-                    color: Theme.of(context).colorScheme.secondary,
+                    color: theme.colorScheme.secondary,
                   ),
                 ),
                 Expanded(
@@ -48,15 +57,15 @@ class _ProductWidgetState extends State<ProductWidget> {
                     children: [
                       Text(
                         widget.child.name,
-                        style: Theme.of(context).textTheme.headline6.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                        style: theme.textTheme.headline6.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       Padding(
                         padding: EdgeInsets.only(top: 2),
                         child: Text(
                           '${loc.currency}${widget.child.total.toStringAsFixed(2)}',
-                          style: Theme.of(context).textTheme.subtitle2,
+                          style: theme.textTheme.subtitle2,
                         ),
                       ),
                     ],
@@ -72,7 +81,7 @@ class _ProductWidgetState extends State<ProductWidget> {
 
     List data = List.from(widget.child.entries);
 
-    if (_expanded)
+    if (_expanded.value)
       info += List.generate(
         data.length,
         (int i) {
@@ -80,10 +89,11 @@ class _ProductWidgetState extends State<ProductWidget> {
           ProductData pd = data[i].value;
 
           Function() onDelete = () => widget.parent.setState(() {
+                setState(() {});
                 if (widget.child.length > 1)
                   widget.child.remove(type);
                 else
-                  _expanded = false;
+                  _expanded.value = false;
               });
 
           Function(Function()) showDeleteConfirmationDialog = (onAccept) {
@@ -138,7 +148,7 @@ class _ProductWidgetState extends State<ProductWidget> {
               price: pd.price,
               quantity: pd.quantity,
               type: type,
-            ).then((val) => widget.parent.setState(() {}));
+            ).then((val) => widget.parent.setState(() => setState(() {})));
           };
 
           return Padding(

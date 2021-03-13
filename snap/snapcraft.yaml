@@ -1,0 +1,35 @@
+name: compras
+version: 0.0.4+1
+summary: Shopping lists
+description: Manage your shopping lists
+
+confinement: strict
+base: core18
+grade: stable
+
+slots:
+  dbus-compras:
+    interface: dbus
+    bus: session
+    name: com.gmail.vtmsugimoto.compras
+
+apps:
+  compras:
+    command: compras
+    extensions: [flutter-master] # Where "master" defines which Flutter channel to use for the build
+    plugs:
+    - network
+    slots:
+      - dbus-compras
+parts:
+  compras:
+    source: .
+    plugin: flutter
+    flutter-target: lib/main.dart # The main entry-point file of the application
+    stage-packages:
+      - libsqlite3-0
+      - sqlite3
+      - libaprutil1-dbd-sqlite3
+      - libqt5sql5-sqlite
+      - libsqlite3-dev
+      - libsqlite3-mod-spatialite

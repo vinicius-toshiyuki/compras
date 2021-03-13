@@ -1,21 +1,20 @@
+import 'dart:io' show Platform;
 import 'dart:math' as Math;
 import 'dart:ui';
-import 'dart:io' show Platform;
 
 import 'package:compras/compras.dart';
+import 'package:desktop_window/desktop_window.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:desktop_window/desktop_window.dart';
 
 void main() {
   LicenseRegistry.addLicense(() async* {
     final kaushanScriptlicense =
-        await rootBundle.loadString('fonts/KaushanScript_OFL.txt');
+        await rootBundle.loadString('fonts/KaushanScript-OFL.txt');
     final balooChettanlicense =
-        await rootBundle.loadString('fonts/BalooChettan_OFL.txt');
+        await rootBundle.loadString('fonts/SourceSansPro-OFL.txt');
     yield LicenseEntryWithLineBreaks(['google_fonts'], kaushanScriptlicense);
     yield LicenseEntryWithLineBreaks(['google_fonts'], balooChettanlicense);
   });
@@ -33,7 +32,9 @@ class ComprasApp extends StatelessWidget {
       DesktopWindow.setWindowSize(_windowSize.flipped * 2);
     }
     final theme = Theme.of(context);
+    final appFont = 'Source Sans Pro';
     return MaterialApp(
+      restorationScopeId: 'app',
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: [
         const Locale('en'),
@@ -43,11 +44,12 @@ class ComprasApp extends StatelessWidget {
       ],
       theme: ThemeData(
         primarySwatch: Colors.cyan,
-        textTheme: GoogleFonts.sourceSansProTextTheme(),
+        textTheme: Typography.blackCupertino.apply(fontFamily: appFont),
         floatingActionButtonTheme: theme.floatingActionButtonTheme,
       ),
       darkTheme: ThemeData.dark().copyWith(
-        textTheme: GoogleFonts.sourceSansProTextTheme().apply(
+        textTheme: Typography.whiteCupertino.apply(
+          fontFamily: appFont,
           displayColor: ThemeData.dark().textTheme.headline1.color,
           bodyColor: ThemeData.dark().textTheme.bodyText1.color,
         ),
@@ -98,7 +100,7 @@ class _ComprasHomePageState extends State<ComprasHomePage> {
   List<ShoppingList> shoppingLists;
   DatabaseManager _dbManager = DatabaseManager(ShoppingListDatabase);
 
-  final titleFont = GoogleFonts.kaushanScript();
+  final titleFont = TextStyle(fontFamily: 'Kaushan Script');
 
   @override
   Widget build(BuildContext context) {
@@ -185,6 +187,7 @@ class _ComprasHomePageState extends State<ComprasHomePage> {
                 })
                 ..sort((list1, list2) => list1.order.compareTo(list2.order));
               child = ReorderableListView.builder(
+                restorationId: 'MainPage',
                 proxyDecorator: (child, index, animation) {
                   return Container(
                       child: child,

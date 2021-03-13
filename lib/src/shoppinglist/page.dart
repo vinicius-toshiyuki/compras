@@ -4,6 +4,76 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import 'shoppinglist.dart';
 
+class _RestorableShoppingList extends RestorableValue<ShoppingList> {
+  final ShoppingList defaultValue;
+  final ShoppingListPageState pageState;
+  List<ProductWidget> products;
+  List<MapEntry<String, Product>> _entries;
+  List<MapEntry<String, Product>> _hidden = [];
+
+  _RestorableShoppingList(this.defaultValue, this.pageState);
+
+  @override
+  ShoppingList createDefaultValue() {
+    _entries = List.from(defaultValue.entries);
+    products = List.generate(_entries.length, (int i) {
+      return ProductWidget(_entries[i].value, parent: pageState);
+    });
+    return defaultValue;
+  }
+
+  @override
+  void didUpdateValue(ShoppingList oldValue) {
+    if (oldValue == null || oldValue != value) {
+      notifyListeners();
+    }
+  }
+
+  @override
+  ShoppingList fromPrimitives(Object data) {
+    _entries = (data as List<Object>)[0];
+    products = (data as List<Object>)[1];
+    return (data as List<Object>)[2];
+  }
+
+  @override
+  Object toPrimitives() {
+    return [_entries, products, value];
+  }
+
+  void swap(int oldIndex, int newIndex) {
+    final moved = _entries.removeAt(oldIndex);
+    final movedWidget = products.removeAt(oldIndex);
+    if (newIndex > oldIndex) newIndex--;
+    _entries.insert(newIndex, moved);
+    products.insert(newIndex, movedWidget);
+  }
+
+  void hide(int i) {
+    _hidden.add(_entries.removeAt(i));
+    value.remove(_hidden.last.key);
+    products.removeAt(i);
+  }
+
+  void unhide(int i) {
+    // TODO: Colocando no penúltimo se voltar o último quando esconde mais de um
+    i = i > _entries.length ? _entries.length : i;
+    _entries.insert(i, _hidden.removeAt(0));
+    value.addEntries([_entries[i]]);
+    products.insert(i, ProductWidget(_entries[i].value, parent: pageState));
+  }
+
+  void update(String name, Product Function(Product) update,
+      {Product Function() ifAbsent}) {
+    value.update(name, update, ifAbsent: () {
+      final product = ifAbsent();
+      _entries.add(MapEntry(name, product));
+      products.add(ProductWidget(_entries.last.value, parent: pageState));
+      return product;
+    });
+  }
+}
+
 class ShoppingListPage extends StatefulWidget {
   static const routeName = '/shoppingList';
 
@@ -19,10 +89,18 @@ class ShoppingListPage extends StatefulWidget {
 }
 
 class ShoppingListPageState extends State<ShoppingListPage>
-    with WidgetsBindingObserver {
+    with WidgetsBindingObserver, RestorationMixin {
   DatabaseManager _dbManager = DatabaseManager(ShoppingListDatabase);
   TextEditingController _titleController = TextEditingController();
-  ShoppingList list;
+  _RestorableShoppingList list;
+
+  @override
+  String get restorationId => ShoppingListPage.routeName;
+
+  @override
+  void restoreState(RestorationBucket oldBucket, bool initialRestore) {
+    registerForRestoration(list, 'shopping list');
+  }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
@@ -34,7 +112,7 @@ class ShoppingListPageState extends State<ShoppingListPage>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
 
-    list = widget.loadedList ?? ShoppingList();
+    list = _RestorableShoppingList(widget.loadedList ?? ShoppingList(), this);
 
     _titleController.addListener(_onTitleFocus);
   }
@@ -42,31 +120,31 @@ class ShoppingListPageState extends State<ShoppingListPage>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    list.dispose();
     super.dispose();
   }
 
   void _onTitleFocus() {
     _titleController.removeListener(_onTitleFocus);
-    _titleController.text = list.title;
+    _titleController.text = list.value.title;
     _titleController.selection = TextSelection(
         baseOffset: 0, extentOffset: _titleController.text.length);
   }
 
   double get total {
-    return list.length > 0
-        ? list.values.map((e) => e.total).reduce((val, el) => val + el)
+    return list.value.length > 0
+        ? list.value.values.map((e) => e.total).reduce((val, el) => val + el)
         : 0;
   }
 
   Future<void> _save() async {
-    if (list.length > 0) await _dbManager.insertShoppingList(list);
+    if (list.value.length > 0) await _dbManager.insertShoppingList(list.value);
   }
 
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context);
-    List<MapEntry<String, Product>> listEntries = List.from(list.entries);
-    list.title ??= '${loc.newf} ${loc.list}';
+    list.value.title ??= '${loc.newf} ${loc.list}';
     final scaffoldMessenger = ScaffoldMessenger.of(context);
 
     return WillPopScope(
@@ -80,14 +158,14 @@ class ShoppingListPageState extends State<ShoppingListPage>
           appBar: AppBar(
             title: TextButton(
               child: Text(
-                list.title,
+                list.value.title,
                 style: Theme.of(context).textTheme.headline6,
                 overflow: TextOverflow.ellipsis,
               ),
               onPressed: () {
                 void _updateTitle(String newTitle) {
                   if (newTitle.isNotEmpty) {
-                    setState(() => list.title = newTitle);
+                    setState(() => list.value.title = newTitle);
                     Navigator.of(context).pop();
                     _titleController.addListener(_onTitleFocus);
                   }
@@ -128,40 +206,29 @@ class ShoppingListPageState extends State<ShoppingListPage>
               },
             ),
           ),
-          body: ListView.separated(
-            separatorBuilder: (BuildContext context, int i) =>
-                Divider(height: 0, indent: 15, endIndent: 15),
-            itemCount: list.length + 1,
+          body: ReorderableListView.builder(
+            restorationId: 'ShoppingListPage${list.value.id}',
+            padding: const EdgeInsets.only(bottom: 60),
+            onReorder: (oldIndex, newIndex) {
+              list.swap(oldIndex, newIndex);
+            },
+            itemCount: list.value.length,
             itemBuilder: (BuildContext context, int i) {
-              if (i == list.length) return Container(height: 60);
-
-              List<MapEntry<String, Product>> removed = [];
-              ProductWidget product =
-                  ProductWidget(listEntries[i].value, parent: this);
               return Dismissible(
-                key: Key('$i${list.length}'),
-                child: product,
+                key: Key('$i${list.value.id}${list.products[i].child.name}'),
+                child: list.products[i],
                 onDismissed: (direction) => setState(() {
-                  removed.add(listEntries.removeAt(i));
-                  list.remove(removed.last.key);
-
-                  scaffoldMessenger
-                      .showSnackBar(
-                        SnackBar(
-                          content:
-                              Text('${toCapitalized(loc.item)} ${loc.removem}'),
-                          action: SnackBarAction(
-                              label: loc.undo,
-                              onPressed: () => list.fromEntries(
-                                  listEntries..insert(i, removed.first))),
-                        ),
-                      )
-                      .closed
-                      .then((reason) {
-                    if (reason != SnackBarClosedReason.action) {
-                      setState(() => removed.remove(0));
-                    }
-                  });
+                  list.hide(i);
+                  scaffoldMessenger.showSnackBar(SnackBar(
+                    content: Text('${toCapitalized(loc.item)} ${loc.removem}'),
+                    action: SnackBarAction(
+                      label: loc.undo,
+                      onPressed: () => setState(() {
+                        list.unhide(i);
+                        scaffoldMessenger.hideCurrentSnackBar();
+                      }),
+                    ),
+                  ));
                 }),
                 background: Container(
                   padding: EdgeInsets.symmetric(horizontal: 15),
@@ -192,7 +259,7 @@ class ShoppingListPageState extends State<ShoppingListPage>
                   setState,
                   _submit,
                   '${loc.newm} ${loc.product}',
-                ),
+                ).then((val) => setState(() {})),
                 tooltip: loc.add,
                 icon: Icon(Icons.add),
                 label: Text('${loc.currency}${total.toStringAsFixed(2)}'),
@@ -214,13 +281,18 @@ class ShoppingListPageState extends State<ShoppingListPage>
     dquantity = double.tryParse(quantity) ?? 1;
 
     list.update(name, (value) {
-      list[name].updateData(
+      list.value[name].updateData(
         type: type,
         price: dprice,
         quantity: dquantity,
         insertIfAbsent: true,
       );
-      return list[name];
+      int idx = list.products
+          .indexWhere((ProductWidget widget) => widget.child.name == name);
+      list.products
+        ..removeAt(idx)
+        ..insert(idx, ProductWidget(list.value[name], parent: list.pageState));
+      return list.value[name];
     }, ifAbsent: () {
       Product product = Product(
         name: name,
