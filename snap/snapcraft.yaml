@@ -7,20 +7,20 @@ confinement: strict
 base: core18
 grade: stable
 
-slots:
-  dbus-compras:
-    interface: dbus
-    bus: session
-    name: com.gmail.vtmsugimoto.compras
+# slots:
+#   dbus-compras:
+#     interface: dbus
+#     bus: session
+#     name: com.gmail.vtmsugimoto.compras
 
 apps:
   compras:
     command: compras
     extensions: [flutter-master] # Where "master" defines which Flutter channel to use for the build
-    plugs:
-    - network
-    slots:
-      - dbus-compras
+    # plugs:
+    #   - network
+    # slots:
+    #   - dbus-compras
 parts:
   compras:
     source: .
