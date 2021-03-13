@@ -4,7 +4,7 @@ summary: Shopping lists
 description: Manage your shopping lists
 
 confinement: strict
-base: core20
+base: core18
 grade: stable
 
 apps:
