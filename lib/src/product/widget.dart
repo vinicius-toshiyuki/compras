@@ -1,6 +1,7 @@
 import 'package:compras/compras.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:intl/intl.dart';
 
 class ProductWidget extends StatefulWidget {
   ProductWidget(this.child, {@required this.parent, Key key})
@@ -64,7 +65,8 @@ class _ProductWidgetState extends State<ProductWidget> with RestorationMixin {
                       Padding(
                         padding: EdgeInsets.only(top: 2),
                         child: Text(
-                          '${loc.currency}${widget.child.total.toStringAsFixed(2)}',
+                          NumberFormat.simpleCurrency(decimalDigits: 2)
+                              .format(widget.child.total),
                           style: theme.textTheme.subtitle2,
                         ),
                       ),

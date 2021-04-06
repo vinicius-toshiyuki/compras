@@ -29,10 +29,11 @@
 	"product": "品物",
 	"shoppinglist": "買い物リスト",
 	"price": "値段",
-	"quanity": "量",
+	"quantity": "量",
 	"type": "品種",
 	"currency": "円",
 
+	"graph": "費用図",
 	"lists_title": "買い物リスト",
 	"nothing_to_see": "記録はありません",
 

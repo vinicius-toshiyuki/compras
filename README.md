@@ -1,8 +1,8 @@
 # Compras
+
 [![Codemagic build status](https://api.codemagic.io/apps/60285b7d723629b11d05a8aa/60285b7d723629b11d05a8a9/status_badge.svg)](https://codemagic.io/apps/60285b7d723629b11d05a8aa/60285b7d723629b11d05a8a9/latest_build)
 
 [![Disponível na Snap Store](https://snapcraft.io/static/images/badges/pt/snap-store-white.svg)](https://snapcraft.io/compras)
-
 
 <img src="img/logo_android.png" width="256pt" alt="Logo" />
 
@@ -12,22 +12,30 @@
 
 ### Preparo
 
-```
+```bash
 flutter pub run flutter_launcher_icons:main
+flutter gen-i10n
 ```
 
 - Android
-```
+
+```bash
 flutter build apk
 ```
+
 - Linux
+
 > Precisa do `sqlite3` instalado
-```
+
+```bash
 flutter build linux
 ```
+
 - IOS, Web, Windows e MacOS
+
 > Nunca testado. Sem Mac, sem build.
-```
+
+```bash
 cd compras
 flutter create --platforms=ios,web,windows,macos .
 flutter build [ios|web|windows|macos]
@@ -40,7 +48,10 @@ flutter build [ios|web|windows|macos]
 
 ### TODO
 
-- [ ] Mudar o *buildDefaultDragHandles* da *ReorderableList*
+- [x] Mudar o *buildDefaultDragHandles* da *ReorderableList*
+- [ ] Pegar as listas já ordenadas
+- [ ] Tirar *currency* da *i10n*
 
 # Licença
+
 [MIT License](./LICENSE)

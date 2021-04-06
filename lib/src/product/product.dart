@@ -234,7 +234,7 @@ class Product extends MapBase<String, ProductData> {
               decoration: InputDecoration(
                 border: OutlineInputBorder(),
                 isDense: true,
-                labelText: toCapitalized(loc.quanity),
+                labelText: toCapitalized(loc.quantity),
               ),
               keyboardType: TextInputType.number,
               textInputAction: TextInputAction.done,

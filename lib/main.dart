@@ -1,5 +1,6 @@
 import 'dart:io' show Platform;
 import 'dart:math' as Math;
+import 'dart:math';
 import 'dart:ui';
 
 import 'package:compras/compras.dart';
@@ -8,6 +9,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:fl_chart/fl_chart.dart';
+import 'package:intl/intl.dart';
 
 void main() {
   LicenseRegistry.addLicense(() async* {
@@ -104,6 +107,7 @@ class _ComprasHomePageState extends State<ComprasHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    Intl.defaultLocale = Localizations.localeOf(context).toLanguageTag();
     final loc = AppLocalizations.of(context);
     final theme = Theme.of(context);
     Widget title = Stack(
@@ -177,6 +181,7 @@ class _ComprasHomePageState extends State<ComprasHomePage> {
             Widget child;
             if (snapshot.hasData && snapshot.data.length > 0) {
               int i = 0;
+              // TODO: arrumar essa palhaçada aqui
               shoppingLists = snapshot.data
                 ..sort((list1, list2) =>
                     list1.order?.compareTo(list2.order ?? double.infinity) ??
@@ -186,8 +191,120 @@ class _ComprasHomePageState extends State<ComprasHomePage> {
                   list.order ??= i++;
                 })
                 ..sort((list1, list2) => list1.order.compareTo(list2.order));
+              final lists = shoppingLists.toList();
+              lists.sort((list1, list2) => list1.total.compareTo(list2.total));
+              final miny = lists.first.total * 0.8;
+              final maxy = lists.last.total * 1.2;
+              lists.sort((list1, list2) =>
+                  list1.dateCreated.isBefore(list2.dateCreated) ? 0 : 1);
+              final minx = 0.0;
+              final maxx = lists.length + 1.0;
+              final locale = Localizations.localeOf(context);
+              var chartData = LineChartData(
+                  lineTouchData: LineTouchData(touchTooltipData:
+                      LineTouchTooltipData(getTooltipItems: (spots) {
+                    return [
+                      for (final spot in spots)
+                        LineTooltipItem(
+                            NumberFormat.simpleCurrency(decimalDigits: 0)
+                                .format(spot.y),
+                            theme.textTheme.subtitle2),
+                    ];
+                  })),
+                  borderData: FlBorderData(
+                    show: true,
+                    border: Border(
+                      bottom: BorderSide(
+                        color: theme.colorScheme.onSurface.withOpacity(0.4),
+                        width: 4,
+                      ),
+                      left: BorderSide(
+                        color: Colors.transparent,
+                      ),
+                      right: BorderSide(
+                        color: Colors.transparent,
+                      ),
+                      top: BorderSide(
+                        color: Colors.transparent,
+                      ),
+                    ),
+                  ),
+                  gridData: FlGridData(
+                    show: false,
+                  ),
+                  minX: minx,
+                  minY: miny,
+                  maxX: maxx,
+                  maxY: maxy,
+                  titlesData: FlTitlesData(
+                    bottomTitles: SideTitles(
+                        reservedSize: 24.0,
+                        margin: 12.0,
+                        showTitles: true,
+                        getTextStyles: (value) {
+                          return theme.textTheme.caption;
+                        },
+                        getTitles: (value) {
+                          if (value > 0 && value <= lists.length) {
+                            var data = lists[value.toInt() - 1].dateCreated;
+                            final formatter = DateFormat('d MMM yy');
+                            return formatter.format(data);
+                          }
+                          return '';
+                        }),
+                    leftTitles: SideTitles(
+                      interval: maxy / 5,
+                      reservedSize: 24.0,
+                      margin: 16.0,
+                      showTitles: true,
+                      getTextStyles: (value) {
+                        return theme.textTheme.caption;
+                      },
+                      getTitles: (value) {
+                        return NumberFormat.simpleCurrency(
+                                decimalDigits: 0,
+                                locale: locale.toLanguageTag())
+                            .format(value);
+                      },
+                    ),
+                  ),
+                  lineBarsData: [
+                    LineChartBarData(
+                      preventCurveOverShooting: true,
+                      spots: [
+                        for (var i = 0; i < lists.length; i++)
+                          FlSpot(i + 1.0, lists[i].total),
+                      ],
+                      isCurved: true,
+                      colors: [
+                        theme.colorScheme.primaryVariant.withOpacity(0.6),
+                        theme.colorScheme.primary.withOpacity(0.6),
+                        theme.colorScheme.primaryVariant.withOpacity(0.6),
+                        theme.colorScheme.primary.withOpacity(0.6),
+                      ],
+                      barWidth: 8,
+                      isStrokeCapRound: true,
+                      dotData: FlDotData(
+                        show: true,
+                      ),
+                      belowBarData: BarAreaData(
+                        show: false,
+                      ),
+                    )
+                  ]);
+              var listsHeader = Container(
+                alignment: Alignment.center,
+                child: Padding(
+                  padding: EdgeInsets.only(bottom: 8.0, top: 16.0),
+                  child: Text(
+                    loc.lists_title,
+                    style: theme.textTheme.headline5,
+                  ),
+                ),
+              );
               child = ReorderableListView.builder(
                 restorationId: 'MainPage',
+                buildDefaultDragHandles: false,
                 proxyDecorator: (child, index, animation) {
                   return Container(
                       child: child,
@@ -202,16 +319,43 @@ class _ComprasHomePageState extends State<ComprasHomePage> {
                         ],
                       ));
                 },
-                header: Container(
-                  alignment: Alignment.center,
-                  child: Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: Text(
-                      loc.lists_title,
-                      style: theme.textTheme.headline5,
-                    ),
-                  ),
-                ),
+                header: shoppingLists.length > 3
+                    ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: EdgeInsets.only(top: 16.0),
+                            child: Text(
+                              loc.graph,
+                              style: theme.textTheme.headline5,
+                            ),
+                          ),
+                          Container(
+                            decoration: BoxDecoration(
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(15.0)),
+                              gradient: LinearGradient(
+                                colors: [
+                                  theme.colorScheme.primary.withOpacity(0.04),
+                                  theme.colorScheme.primaryVariant
+                                      .withOpacity(0.07),
+                                ],
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                              ),
+                            ),
+                            width: MediaQuery.of(context).size.width * 0.5,
+                            margin: EdgeInsets.only(top: 24.0),
+                            padding: EdgeInsets.fromLTRB(16.0, 0.0, 24.0, 8.0),
+                            child: AspectRatio(
+                              aspectRatio: 16 / 9,
+                              child: LineChart(chartData),
+                            ),
+                          ),
+                          listsHeader,
+                        ],
+                      )
+                    : listsHeader,
                 padding: EdgeInsets.all(8.0),
                 onReorder: (oldIndex, newIndex) {
                   final moved = shoppingLists.removeAt(oldIndex);
@@ -232,61 +376,65 @@ class _ComprasHomePageState extends State<ComprasHomePage> {
                 },
                 itemCount: shoppingLists?.length ?? 0,
                 itemBuilder: (BuildContext context, int i) {
-                  return Column(
-                    key: Key('Coluna${i}Lista${shoppingLists[i].id}'),
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                          Dismissible(
-                            key: Key('Lista${shoppingLists[i].id}'),
-                            child: TextButton(
-                              child: Padding(
-                                padding: const EdgeInsets.only(bottom: 8.0),
-                                child:
-                                    ShoppingListWidget(list: shoppingLists[i]),
+                  return ReorderableDelayedDragStartListener(
+                    key: Key('Item${i}Lista${shoppingLists[i].id}dragHandle'),
+                    index: i,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                            Dismissible(
+                              key: Key('Lista${shoppingLists[i].id}'),
+                              child: TextButton(
+                                child: Padding(
+                                  padding: const EdgeInsets.only(bottom: 8.0),
+                                  child: ShoppingListWidget(
+                                      list: shoppingLists[i]),
+                                ),
+                                onPressed: () {
+                                  Navigator.of(context).pushNamed(
+                                      ShoppingListPage.routeName,
+                                      arguments: {
+                                        'loadedList': shoppingLists[i],
+                                      }).then((val) {
+                                    if (shoppingLists[i].length == 0)
+                                      _dbManager
+                                          .deleteShoppingList(
+                                              shoppingLists[i].id)
+                                          .then((val) => setState(() {}));
+                                    else
+                                      setState(() {});
+                                  });
+                                },
                               ),
-                              onPressed: () {
-                                Navigator.of(context).pushNamed(
-                                    ShoppingListPage.routeName,
-                                    arguments: {
-                                      'loadedList': shoppingLists[i],
-                                    }).then((val) {
-                                  if (shoppingLists[i].length == 0)
-                                    _dbManager
-                                        .deleteShoppingList(shoppingLists[i].id)
-                                        .then((val) => setState(() {}));
-                                  else
-                                    setState(() {});
-                                });
+                              onDismissed: (direction) {
+                                _dbManager
+                                    .deleteShoppingList(
+                                        shoppingLists.removeAt(i).id)
+                                    .then((val) => setState(() {}));
                               },
-                            ),
-                            onDismissed: (direction) {
-                              _dbManager
-                                  .deleteShoppingList(
-                                      shoppingLists.removeAt(i).id)
-                                  .then((val) => setState(() {}));
-                            },
-                            background: Container(
-                              height: 50,
-                              padding: EdgeInsets.symmetric(horizontal: 15),
-                              alignment: Alignment.centerLeft,
-                              color: theme.colorScheme.error,
-                              child: Icon(
-                                Icons.remove,
-                                color: theme.colorScheme.onError,
+                              background: Container(
+                                height: 50,
+                                padding: EdgeInsets.symmetric(horizontal: 15),
+                                alignment: Alignment.centerLeft,
+                                color: theme.colorScheme.error,
+                                child: Icon(
+                                  Icons.remove,
+                                  color: theme.colorScheme.onError,
+                                ),
+                              ),
+                              secondaryBackground: Container(
+                                padding: EdgeInsets.symmetric(horizontal: 15),
+                                alignment: Alignment.centerRight,
+                                color: theme.colorScheme.error,
+                                child: Icon(
+                                  Icons.remove,
+                                  color: theme.colorScheme.onError,
+                                ),
                               ),
                             ),
-                            secondaryBackground: Container(
-                              padding: EdgeInsets.symmetric(horizontal: 15),
-                              alignment: Alignment.centerRight,
-                              color: theme.colorScheme.error,
-                              child: Icon(
-                                Icons.remove,
-                                color: theme.colorScheme.onError,
-                              ),
-                            ),
-                          ),
-                        ] +
-                        (i == shoppingLists.length - 1 ? [] : [Divider()]),
+                          ] +
+                          (i == shoppingLists.length - 1 ? [] : [Divider()]),
+                    ),
                   );
                 },
               );

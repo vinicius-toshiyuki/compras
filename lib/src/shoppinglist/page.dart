@@ -1,6 +1,7 @@
 import 'package:compras/compras.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:intl/intl.dart';
 
 import 'shoppinglist.dart';
 
@@ -47,6 +48,9 @@ class _RestorableShoppingList extends RestorableValue<ShoppingList> {
     if (newIndex > oldIndex) newIndex--;
     _entries.insert(newIndex, moved);
     products.insert(newIndex, movedWidget);
+    for (var i = 0; i < products.length; i++) {
+      products[i].child.order = i;
+    }
   }
 
   void hide(int i) {
@@ -212,40 +216,47 @@ class ShoppingListPageState extends State<ShoppingListPage>
             onReorder: (oldIndex, newIndex) {
               list.swap(oldIndex, newIndex);
             },
+            buildDefaultDragHandles: false,
             itemCount: list.value.length,
             itemBuilder: (BuildContext context, int i) {
-              return Dismissible(
-                key: Key('$i${list.value.id}${list.products[i].child.name}'),
-                child: list.products[i],
-                onDismissed: (direction) => setState(() {
-                  list.hide(i);
-                  scaffoldMessenger.showSnackBar(SnackBar(
-                    content: Text('${toCapitalized(loc.item)} ${loc.removem}'),
-                    action: SnackBarAction(
-                      label: loc.undo,
-                      onPressed: () => setState(() {
-                        list.unhide(i);
-                        scaffoldMessenger.hideCurrentSnackBar();
-                      }),
+              return ReorderableDelayedDragStartListener(
+                key: Key(
+                    '$i${list.value.id}${list.products[i].child.name}dragHandle'),
+                index: i,
+                child: Dismissible(
+                  key: Key('$i${list.value.id}${list.products[i].child.name}'),
+                  child: list.products[i],
+                  onDismissed: (direction) => setState(() {
+                    list.hide(i);
+                    scaffoldMessenger.showSnackBar(SnackBar(
+                      content:
+                          Text('${toCapitalized(loc.item)} ${loc.removem}'),
+                      action: SnackBarAction(
+                        label: loc.undo,
+                        onPressed: () => setState(() {
+                          list.unhide(i);
+                          scaffoldMessenger.hideCurrentSnackBar();
+                        }),
+                      ),
+                    ));
+                  }),
+                  background: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 15),
+                    alignment: Alignment.centerLeft,
+                    color: Theme.of(context).colorScheme.error,
+                    child: Icon(
+                      Icons.remove,
+                      color: Theme.of(context).colorScheme.onError,
                     ),
-                  ));
-                }),
-                background: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 15),
-                  alignment: Alignment.centerLeft,
-                  color: Theme.of(context).colorScheme.error,
-                  child: Icon(
-                    Icons.remove,
-                    color: Theme.of(context).colorScheme.onError,
                   ),
-                ),
-                secondaryBackground: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 15),
-                  alignment: Alignment.centerRight,
-                  color: Theme.of(context).colorScheme.error,
-                  child: Icon(
-                    Icons.remove,
-                    color: Theme.of(context).colorScheme.onError,
+                  secondaryBackground: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 15),
+                    alignment: Alignment.centerRight,
+                    color: Theme.of(context).colorScheme.error,
+                    child: Icon(
+                      Icons.remove,
+                      color: Theme.of(context).colorScheme.onError,
+                    ),
                   ),
                 ),
               );
@@ -262,7 +273,8 @@ class ShoppingListPageState extends State<ShoppingListPage>
                 ).then((val) => setState(() {})),
                 tooltip: loc.add,
                 icon: Icon(Icons.add),
-                label: Text('${loc.currency}${total.toStringAsFixed(2)}'),
+                label: Text(NumberFormat.simpleCurrency(decimalDigits: 2)
+                    .format(total)),
               );
             },
           ),

@@ -20,6 +20,10 @@ class ShoppingList extends MapBase<String, Product> {
     return pkeys;
   }
 
+  double get total => _products
+      .map((key, value) => MapEntry<String, double>(key, value.total))
+      .values
+      .reduce((value, element) => value + element);
   Product operator [](Object key) => _products[key];
   int get length => _products.length;
   Product remove(Object key) {

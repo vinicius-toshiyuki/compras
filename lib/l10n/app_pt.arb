@@ -29,10 +29,11 @@
 	"product": "produto",
 	"shoppinglist": "lista de compras",
 	"price": "preço",
-	"quanity": "quantidade",
+	"quantity": "quantidade",
 	"type": "marca/tipo",
 	"currency": "R$",
 
+	"graph": "Gastos totais",
 	"lists_title": "Listas de compras",
 	"nothing_to_see": "Nada para ver aqui",
 

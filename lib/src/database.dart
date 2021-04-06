@@ -146,6 +146,7 @@ class DatabaseManager {
         final List<Map<String, dynamic>> productMaps = await tnx.query(
           productTable,
           where: '$id = ?',
+          orderBy: '$order ASC',
           whereArgs: [listMaps[id]],
         );
 
