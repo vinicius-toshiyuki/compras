@@ -197,17 +197,17 @@ class _ComprasHomePageState extends State<ComprasHomePage> {
               final maxy = lists.last.total * 1.2;
               lists.sort((list1, list2) =>
                   list1.dateCreated.isBefore(list2.dateCreated) ? 0 : 1);
-              final minx = 0.0;
-              final maxx = lists.length + 1.0;
-              final locale = Localizations.localeOf(context);
+              final interval = 0.1;
+              final minx = 1 - interval;
+              final maxx = lists.length + interval;
+              final currencyFormatter =
+                  NumberFormat.simpleCurrency(decimalDigits: 0);
               var chartData = LineChartData(
                   lineTouchData: LineTouchData(touchTooltipData:
                       LineTouchTooltipData(getTooltipItems: (spots) {
                     return [
                       for (final spot in spots)
-                        LineTooltipItem(
-                            NumberFormat.simpleCurrency(decimalDigits: 0)
-                                .format(spot.y),
+                        LineTooltipItem(currencyFormatter.format(spot.y),
                             theme.textTheme.subtitle2),
                     ];
                   })),
@@ -238,33 +238,37 @@ class _ComprasHomePageState extends State<ComprasHomePage> {
                   maxY: maxy,
                   titlesData: FlTitlesData(
                     bottomTitles: SideTitles(
-                        reservedSize: 24.0,
-                        margin: 12.0,
+                        reservedSize: 40.0,
+                        margin: 8.0,
                         showTitles: true,
                         getTextStyles: (value) {
                           return theme.textTheme.caption;
                         },
+                        interval: interval,
+                        checkToShowTitle: (min, max, _, interval, value) {
+                          final isIndexValid = value.toStringAsFixed(1) ==
+                              value.truncate().toStringAsFixed(1);
+                          return isIndexValid;
+                        },
                         getTitles: (value) {
-                          if (value > 0 && value <= lists.length) {
-                            var data = lists[value.toInt() - 1].dateCreated;
-                            final formatter = DateFormat('d MMM yy');
+                          final index = value.truncate() - 1;
+                          if (index >= 0 && index < lists.length) {
+                            var data = lists[index].dateCreated;
+                            final formatter = DateFormat('d\nMMM\nyy');
                             return formatter.format(data);
                           }
                           return '';
                         }),
                     leftTitles: SideTitles(
-                      interval: maxy / 5,
-                      reservedSize: 24.0,
-                      margin: 16.0,
+                      interval: maxy == 0 ? 1 : maxy / 5,
+                      reservedSize: currencyFormatter.format(maxy).length * 5.0,
+                      margin: 8.0,
                       showTitles: true,
                       getTextStyles: (value) {
                         return theme.textTheme.caption;
                       },
                       getTitles: (value) {
-                        return NumberFormat.simpleCurrency(
-                                decimalDigits: 0,
-                                locale: locale.toLanguageTag())
-                            .format(value);
+                        return currencyFormatter.format(value);
                       },
                     ),
                   ),
@@ -277,10 +281,7 @@ class _ComprasHomePageState extends State<ComprasHomePage> {
                       ],
                       isCurved: true,
                       colors: [
-                        theme.colorScheme.primaryVariant.withOpacity(0.6),
-                        theme.colorScheme.primary.withOpacity(0.6),
-                        theme.colorScheme.primaryVariant.withOpacity(0.6),
-                        theme.colorScheme.primary.withOpacity(0.6),
+                        theme.colorScheme.primary.withOpacity(0.4),
                       ],
                       barWidth: 8,
                       isStrokeCapRound: true,
@@ -288,7 +289,13 @@ class _ComprasHomePageState extends State<ComprasHomePage> {
                         show: true,
                       ),
                       belowBarData: BarAreaData(
-                        show: false,
+                        show: true,
+                        colors: [
+                          theme.colorScheme.primary.withOpacity(0.3),
+                          theme.colorScheme.primaryVariant.withOpacity(0.1),
+                        ],
+                        gradientFrom: Offset.fromDirection(0.78, 1.2),
+                        gradientTo: Offset.fromDirection(3.92),
                       ),
                     )
                   ]);
@@ -344,11 +351,11 @@ class _ComprasHomePageState extends State<ComprasHomePage> {
                                 end: Alignment.bottomCenter,
                               ),
                             ),
-                            width: MediaQuery.of(context).size.width * 0.5,
-                            margin: EdgeInsets.only(top: 24.0),
-                            padding: EdgeInsets.fromLTRB(16.0, 0.0, 24.0, 8.0),
+                            width: MediaQuery.of(context).size.width * 0.6,
+                            margin: EdgeInsets.only(top: 8.0),
+                            padding: EdgeInsets.all(8.0),
                             child: AspectRatio(
-                              aspectRatio: 16 / 9,
+                              aspectRatio: 4 / 3,
                               child: LineChart(chartData),
                             ),
                           ),

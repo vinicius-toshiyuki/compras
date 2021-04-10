@@ -31,7 +31,6 @@
 	"price": "preço",
 	"quantity": "quantidade",
 	"type": "marca/tipo",
-	"currency": "R$",
 
 	"graph": "Gastos totais",
 	"lists_title": "Listas de compras",

@@ -1,10 +1,13 @@
 # Compras
 
 [![Codemagic build status](https://api.codemagic.io/apps/60285b7d723629b11d05a8aa/60285b7d723629b11d05a8a9/status_badge.svg)](https://codemagic.io/apps/60285b7d723629b11d05a8aa/60285b7d723629b11d05a8a9/latest_build)
+[![compras](https://snapcraft.io/compras/badge.svg)](https://snapcraft.io/compras)
 
-[![Disponível na Snap Store](https://snapcraft.io/static/images/badges/pt/snap-store-white.svg)](https://snapcraft.io/compras)
+[![Disponível na Snap Store](
+https://snapcraft.io/static/images/badges/pt/snap-store-white.svg =150x
+)](https://snapcraft.io/compras)
 
-<img src="img/logo_android.png" width="256pt" alt="Logo" />
+![](img/logo_android.png =196x)
 
 É só para fazer lista de compras.
 
@@ -50,8 +53,9 @@ flutter build [ios|web|windows|macos]
 
 - [x] Mudar o *buildDefaultDragHandles* da *ReorderableList*
 - [ ] Pegar as listas já ordenadas
-- [ ] Tirar *currency* da *i10n*
+- [x] Tirar *currency* da *i10n*
+- [ ] Colocar o gráfico separado
 
-# Licença
+## Licença
 
 [MIT License](./LICENSE)

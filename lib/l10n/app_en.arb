@@ -31,7 +31,6 @@
 	"price": "price",
 	"quantity": "quantity",
 	"type": "Brand/type",
-	"currency": "$",
 
 	"graph": "Spendings",
 	"lists_title": "Shopping lists",
