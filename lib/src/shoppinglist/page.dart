@@ -1,7 +1,10 @@
+import 'dart:io' show Platform;
 import 'package:compras/compras.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
+import 'package:share/share.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'shoppinglist.dart';
 
@@ -147,10 +150,59 @@ class ShoppingListPageState extends State<ShoppingListPage>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final loc = AppLocalizations.of(context);
     list.value.title ??= '${loc.newf} ${loc.list}';
     final scaffoldMessenger = ScaffoldMessenger.of(context);
 
+    var listTitle = TextButton(
+      child: Text(
+        list.value.title,
+        style: theme.textTheme.headline6,
+        overflow: TextOverflow.ellipsis,
+      ),
+      onPressed: () {
+        void _updateTitle(String newTitle) {
+          if (newTitle.isNotEmpty) {
+            setState(() => list.value.title = newTitle);
+            Navigator.of(context).pop();
+            _titleController.addListener(_onTitleFocus);
+          }
+        }
+
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text('${loc.rename} ${loc.list}'),
+            content: TextField(
+              controller: _titleController,
+              decoration: InputDecoration(
+                border: OutlineInputBorder(),
+                isDense: true,
+                labelText: '${loc.newm} ${loc.name}',
+              ),
+              autofocus: true,
+              textCapitalization: TextCapitalization.words,
+              textInputAction: TextInputAction.done,
+              onSubmitted: (value) => _updateTitle(_titleController.text),
+            ),
+            actions: [
+              TextButton(
+                child: Text(loc.cancel),
+                onPressed: () {
+                  _titleController.addListener(_onTitleFocus);
+                  Navigator.of(context).pop();
+                },
+              ),
+              TextButton(
+                child: Text(loc.ok),
+                onPressed: () => _updateTitle(_titleController.text),
+              ),
+            ],
+          ),
+        );
+      },
+    );
     return WillPopScope(
         onWillPop: () async {
           await _save();
@@ -158,57 +210,96 @@ class ShoppingListPageState extends State<ShoppingListPage>
           return true;
         },
         child: Scaffold(
-          backgroundColor: Theme.of(context).colorScheme.surface,
+          backgroundColor: theme.colorScheme.surface,
           appBar: AppBar(
-            title: TextButton(
-              child: Text(
-                list.value.title,
-                style: Theme.of(context).textTheme.headline6,
-                overflow: TextOverflow.ellipsis,
-              ),
-              onPressed: () {
-                void _updateTitle(String newTitle) {
-                  if (newTitle.isNotEmpty) {
-                    setState(() => list.value.title = newTitle);
-                    Navigator.of(context).pop();
-                    _titleController.addListener(_onTitleFocus);
-                  }
-                }
-
-                showDialog(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    title: Text('${loc.rename} ${loc.list}'),
-                    content: TextField(
-                      controller: _titleController,
-                      decoration: InputDecoration(
-                        border: OutlineInputBorder(),
-                        isDense: true,
-                        labelText: '${loc.newm} ${loc.name}',
-                      ),
-                      autofocus: true,
-                      textCapitalization: TextCapitalization.words,
-                      textInputAction: TextInputAction.done,
-                      onSubmitted: (value) =>
-                          _updateTitle(_titleController.text),
-                    ),
-                    actions: [
-                      TextButton(
-                        child: Text(loc.cancel),
-                        onPressed: () {
-                          _titleController.addListener(_onTitleFocus);
-                          Navigator.of(context).pop();
-                        },
-                      ),
-                      TextButton(
-                        child: Text(loc.ok),
-                        onPressed: () => _updateTitle(_titleController.text),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
+            title: listTitle,
+            actions: [
+              Padding(
+                padding: const EdgeInsets.only(right: 8.0),
+                child: IconButton(
+                    tooltip: loc.share,
+                    icon: Icon(Icons.share),
+                    onPressed: () {
+                      final textData = _getListTextData();
+                      if (Platform.isIOS || Platform.isAndroid) {
+                        Share.share(textData, subject: list.value.title);
+                      } else {
+                        showDialog(
+                                context: context,
+                                builder: (context) {
+                                  return Dialog(
+                                      child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.end,
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(loc.shareText),
+                                        Container(
+                                          height: 200,
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Align(
+                                            alignment: Alignment.topLeft,
+                                            child: SingleChildScrollView(
+                                              child: Column(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  SelectableText.rich(
+                                                    TextSpan(
+                                                      text: list.value.title +
+                                                          '\n',
+                                                      style: theme
+                                                          .textTheme.headline6,
+                                                      children: [
+                                                        TextSpan(
+                                                            text: textData,
+                                                            style: theme
+                                                                .textTheme
+                                                                .bodyText2),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        // TODO: Os métodos não funcionam no desktop ainda
+                                        // ElevatedButton(
+                                        //     style: ButtonStyle(
+                                        //       backgroundColor:
+                                        //           MaterialStateProperty.all(
+                                        //               theme.colorScheme.secondary),
+                                        //     ),
+                                        //     onPressed: () {
+                                        //       Navigator.of(context).pop(true);
+                                        //     },
+                                        //     child: Text(loc.share,
+                                        //         style: theme.textTheme.button
+                                        //             .copyWith(
+                                        //                 color: theme.colorScheme
+                                        //                     .onSecondary)))
+                                      ],
+                                    ),
+                                  ));
+                                })
+                            // .then((value) {
+                            //   if (value == true) {
+                            //     // Share.share(textData, subject: list.value.title);
+                            //     var uri = Uri(scheme: 'mailto', queryParameters: {
+                            //       'subject': list.value.title,
+                            //       'body': textData,
+                            //     });
+                            //     print(uri.toString());
+                            //     launch(uri.toString());
+                            //   }
+                            // })
+                            ;
+                      }
+                    }),
+              )
+            ],
           ),
           body: ReorderableListView.builder(
             restorationId: 'ShoppingListPage${list.value.id}',
@@ -243,19 +334,19 @@ class ShoppingListPageState extends State<ShoppingListPage>
                   background: Container(
                     padding: EdgeInsets.symmetric(horizontal: 15),
                     alignment: Alignment.centerLeft,
-                    color: Theme.of(context).colorScheme.error,
+                    color: theme.colorScheme.error,
                     child: Icon(
                       Icons.remove,
-                      color: Theme.of(context).colorScheme.onError,
+                      color: theme.colorScheme.onError,
                     ),
                   ),
                   secondaryBackground: Container(
                     padding: EdgeInsets.symmetric(horizontal: 15),
                     alignment: Alignment.centerRight,
-                    color: Theme.of(context).colorScheme.error,
+                    color: theme.colorScheme.error,
                     child: Icon(
                       Icons.remove,
-                      color: Theme.of(context).colorScheme.onError,
+                      color: theme.colorScheme.onError,
                     ),
                   ),
                 ),
@@ -317,5 +408,17 @@ class ShoppingListPageState extends State<ShoppingListPage>
       return product;
     });
     return true;
+  }
+
+  String _getListTextData() {
+    var products = [];
+    for (var prdt in list.products) {
+      var prdtText = [prdt.child.name];
+      for (var data in prdt.child.values) {
+        prdtText.add(data.toString());
+      }
+      products.add(prdtText.join(', '));
+    }
+    return products.join('\n');
   }
 }

@@ -36,5 +36,14 @@
 	"lists_title": "買い物リスト",
 	"nothing_to_see": "記録はありません",
 
-	"mergeTypesText": "この品種はもう追加されています. 複写品種を結合します？"
+	"mergeTypesText": "この品種はもう追加されています. 複写品種を結合します？",
+
+	"settings": "設定",
+	"licenses": "ライセンス",
+	"light": "ライト",
+	"system": "自動",
+	"dark": "ダーク",
+
+	"share": "共有",
+	"shareText": "共有するにはテキストをコピー"
 }

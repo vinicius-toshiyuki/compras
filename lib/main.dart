@@ -1,6 +1,5 @@
 import 'dart:io' show Platform;
 import 'dart:math' as Math;
-import 'dart:math';
 import 'dart:ui';
 
 import 'package:compras/compras.dart';
@@ -11,6 +10,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   LicenseRegistry.addLicense(() async* {
@@ -25,15 +25,48 @@ void main() {
   runApp(ComprasApp());
 }
 
-class ComprasApp extends StatelessWidget {
+class ComprasApp extends StatefulWidget {
+  @override
+  _ComprasAppState createState() => _ComprasAppState();
+}
+
+class _ComprasAppState extends State<ComprasApp> {
   final _windowSize = Size(350, 450);
 
+  ThemeMode _brightness = ThemeMode.system;
+
+  void updateTheme() {
+    SharedPreferences.getInstance().then((prefs) async {
+      setState(() {
+        final brightnessStr = prefs.getString(SettingsPage.brightness);
+        switch (brightnessStr) {
+          case SettingsPage.lightTheme:
+            _brightness = ThemeMode.light;
+            break;
+          case SettingsPage.darkTheme:
+            _brightness = ThemeMode.dark;
+            break;
+          case SettingsPage.systemTheme:
+          default:
+            _brightness = ThemeMode.system;
+            break;
+        }
+      });
+    });
+  }
+
   @override
-  Widget build(BuildContext context) {
+  void initState() {
     if (Platform.isLinux || Platform.isMacOS || Platform.isWindows) {
       DesktopWindow.setMinWindowSize(_windowSize);
       DesktopWindow.setWindowSize(_windowSize.flipped * 2);
     }
+    updateTheme();
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final appFont = 'Source Sans Pro';
     return MaterialApp(
@@ -61,8 +94,9 @@ class ComprasApp extends StatelessWidget {
         ),
         floatingActionButtonTheme: ThemeData.dark().floatingActionButtonTheme,
       ),
+      themeMode: _brightness,
       home: DividerTheme(
-        child: ComprasHomePage(),
+        child: ComprasHomePage(app: this),
         data: theme.dividerTheme.copyWith(
           indent: 15,
           endIndent: 15,
@@ -70,25 +104,45 @@ class ComprasApp extends StatelessWidget {
         ),
       ),
       onGenerateRoute: (settings) {
-        // if (settings.name == ShoppingListPage.routeName);
-        return PageRouteBuilder(
-          barrierColor: Colors.black26,
-          opaque: true,
-          pageBuilder: (context, animation, secondaryAnimation) {
-            final Map<String, dynamic> args = settings.arguments ?? Map();
-            return ShoppingListPage(
-              loadedList: args.putIfAbsent('loadedList', () => null),
-            );
-          },
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            return SlideTransition(
-                position: Tween<Offset>(
-                  begin: Offset(1, 0),
-                  end: Offset.zero,
-                ).animate(animation),
-                child: child);
-          },
-        );
+        var pageRoute;
+        if (settings.name == ShoppingListPage.routeName) {
+          pageRoute = PageRouteBuilder(
+            barrierColor: Colors.black26,
+            opaque: true,
+            pageBuilder: (context, animation, secondaryAnimation) {
+              final Map<String, dynamic> args = settings.arguments ?? Map();
+              return ShoppingListPage(
+                loadedList: args.putIfAbsent('loadedList', () => null),
+              );
+            },
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+              return SlideTransition(
+                  position: Tween<Offset>(
+                    begin: Offset(1, 0),
+                    end: Offset.zero,
+                  ).animate(animation),
+                  child: child);
+            },
+          );
+        } else {
+          pageRoute = PageRouteBuilder(
+              barrierColor: Colors.black26,
+              opaque: true,
+              pageBuilder: (context, animation, secondaryAnimation) {
+                return SettingsPage();
+              },
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) {
+                return SlideTransition(
+                    position: Tween<Offset>(
+                      begin: Offset(1, 0),
+                      end: Offset.zero,
+                    ).animate(animation),
+                    child: child);
+              });
+        }
+        return pageRoute;
       },
       debugShowCheckedModeBanner: false,
     );
@@ -96,6 +150,8 @@ class ComprasApp extends StatelessWidget {
 }
 
 class ComprasHomePage extends StatefulWidget {
+  final _ComprasAppState app;
+  ComprasHomePage({@required this.app});
   _ComprasHomePageState createState() => _ComprasHomePageState();
 }
 
@@ -173,6 +229,23 @@ class _ComprasHomePageState extends State<ComprasHomePage> {
       appBar: AppBar(
         centerTitle: true,
         title: title,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 8.0),
+            child: IconButton(
+                tooltip: loc.share,
+                icon: Icon(Icons.settings, color: Colors.white),
+                onPressed: () {
+                  Navigator.of(context)
+                      .pushNamed(
+                    SettingsPage.routeName,
+                  )
+                      .then((val) {
+                    widget.app.updateTheme();
+                  });
+                }),
+          ),
+        ],
       ),
       body: FutureBuilder(
           future: _dbManager.getShoppingLists(),
@@ -202,103 +275,8 @@ class _ComprasHomePageState extends State<ComprasHomePage> {
               final maxx = lists.length + interval;
               final currencyFormatter =
                   NumberFormat.simpleCurrency(decimalDigits: 0);
-              var chartData = LineChartData(
-                  lineTouchData: LineTouchData(touchTooltipData:
-                      LineTouchTooltipData(getTooltipItems: (spots) {
-                    return [
-                      for (final spot in spots)
-                        LineTooltipItem(currencyFormatter.format(spot.y),
-                            theme.textTheme.subtitle2),
-                    ];
-                  })),
-                  borderData: FlBorderData(
-                    show: true,
-                    border: Border(
-                      bottom: BorderSide(
-                        color: theme.colorScheme.onSurface.withOpacity(0.4),
-                        width: 4,
-                      ),
-                      left: BorderSide(
-                        color: Colors.transparent,
-                      ),
-                      right: BorderSide(
-                        color: Colors.transparent,
-                      ),
-                      top: BorderSide(
-                        color: Colors.transparent,
-                      ),
-                    ),
-                  ),
-                  gridData: FlGridData(
-                    show: false,
-                  ),
-                  minX: minx,
-                  minY: miny,
-                  maxX: maxx,
-                  maxY: maxy,
-                  titlesData: FlTitlesData(
-                    bottomTitles: SideTitles(
-                        reservedSize: 40.0,
-                        margin: 8.0,
-                        showTitles: true,
-                        getTextStyles: (value) {
-                          return theme.textTheme.caption;
-                        },
-                        interval: interval,
-                        checkToShowTitle: (min, max, _, interval, value) {
-                          final isIndexValid = value.toStringAsFixed(1) ==
-                              value.truncate().toStringAsFixed(1);
-                          return isIndexValid;
-                        },
-                        getTitles: (value) {
-                          final index = value.truncate() - 1;
-                          if (index >= 0 && index < lists.length) {
-                            var data = lists[index].dateCreated;
-                            final formatter = DateFormat('d\nMMM\nyy');
-                            return formatter.format(data);
-                          }
-                          return '';
-                        }),
-                    leftTitles: SideTitles(
-                      interval: maxy == 0 ? 1 : maxy / 5,
-                      reservedSize: currencyFormatter.format(maxy).length * 5.0,
-                      margin: 8.0,
-                      showTitles: true,
-                      getTextStyles: (value) {
-                        return theme.textTheme.caption;
-                      },
-                      getTitles: (value) {
-                        return currencyFormatter.format(value);
-                      },
-                    ),
-                  ),
-                  lineBarsData: [
-                    LineChartBarData(
-                      preventCurveOverShooting: true,
-                      spots: [
-                        for (var i = 0; i < lists.length; i++)
-                          FlSpot(i + 1.0, lists[i].total),
-                      ],
-                      isCurved: true,
-                      colors: [
-                        theme.colorScheme.primary.withOpacity(0.4),
-                      ],
-                      barWidth: 8,
-                      isStrokeCapRound: true,
-                      dotData: FlDotData(
-                        show: true,
-                      ),
-                      belowBarData: BarAreaData(
-                        show: true,
-                        colors: [
-                          theme.colorScheme.primary.withOpacity(0.3),
-                          theme.colorScheme.primaryVariant.withOpacity(0.1),
-                        ],
-                        gradientFrom: Offset.fromDirection(0.78, 1.2),
-                        gradientTo: Offset.fromDirection(3.92),
-                      ),
-                    )
-                  ]);
+              var chartData = _getGraphData(theme, currencyFormatter, minx,
+                  miny, maxx, maxy, interval, lists);
               var listsHeader = Container(
                 alignment: Alignment.center,
                 child: Padding(
@@ -512,5 +490,117 @@ class _ComprasHomePageState extends State<ComprasHomePage> {
         },
       ),
     );
+  }
+
+  LineChartData _getGraphData(
+      ThemeData theme,
+      NumberFormat currencyFormatter,
+      double minx,
+      double miny,
+      double maxx,
+      double maxy,
+      double interval,
+      List<ShoppingList> lists) {
+    return LineChartData(
+        lineTouchData: LineTouchData(
+            touchTooltipData: LineTouchTooltipData(
+                tooltipBgColor: theme.colorScheme.onSurface,
+                getTooltipItems: (spots) {
+                  return [
+                    for (final spot in spots)
+                      LineTooltipItem(
+                          currencyFormatter.format(spot.y),
+                          theme.textTheme.subtitle2
+                              .copyWith(color: theme.colorScheme.surface)),
+                  ];
+                })),
+        borderData: FlBorderData(
+          show: true,
+          border: Border(
+            bottom: BorderSide(
+              color: theme.colorScheme.onSurface.withOpacity(0.4),
+              width: 4,
+            ),
+            left: BorderSide(
+              color: Colors.transparent,
+            ),
+            right: BorderSide(
+              color: Colors.transparent,
+            ),
+            top: BorderSide(
+              color: Colors.transparent,
+            ),
+          ),
+        ),
+        gridData: FlGridData(
+          show: false,
+        ),
+        minX: minx,
+        minY: miny,
+        maxX: maxx,
+        maxY: maxy,
+        titlesData: FlTitlesData(
+          bottomTitles: SideTitles(
+              reservedSize: 40.0,
+              margin: 8.0,
+              showTitles: true,
+              getTextStyles: (value) {
+                return theme.textTheme.caption;
+              },
+              interval: interval,
+              checkToShowTitle: (min, max, _, interval, value) {
+                final isIndexValid = value.toStringAsFixed(1) ==
+                    value.truncate().toStringAsFixed(1);
+                return isIndexValid;
+              },
+              getTitles: (value) {
+                final index = value.truncate() - 1;
+                if (index >= 0 && index < lists.length) {
+                  var data = lists[index].dateCreated;
+                  final formatter = DateFormat('d\nMMM\nyy');
+                  return formatter.format(data);
+                }
+                return '';
+              }),
+          leftTitles: SideTitles(
+            interval: maxy == 0 ? 1 : maxy / 5,
+            reservedSize: currencyFormatter.format(maxy).length * 5.0,
+            margin: 8.0,
+            showTitles: true,
+            getTextStyles: (value) {
+              return theme.textTheme.caption;
+            },
+            getTitles: (value) {
+              return currencyFormatter.format(value);
+            },
+          ),
+        ),
+        lineBarsData: [
+          LineChartBarData(
+            preventCurveOverShooting: true,
+            spots: [
+              for (var i = 0; i < lists.length; i++)
+                FlSpot(i + 1.0, lists[i].total),
+            ],
+            isCurved: true,
+            colors: [
+              theme.colorScheme.primary.withOpacity(0.4),
+            ],
+            barWidth: 8,
+            isStrokeCapRound: true,
+            dotData: FlDotData(
+              show: true,
+            ),
+            belowBarData: BarAreaData(
+              show: true,
+              colors: [
+                theme.colorScheme.primary.withOpacity(0.3),
+                theme.colorScheme.primaryVariant.withOpacity(0.1),
+              ],
+              gradientFrom: Offset.fromDirection(0.78, 1.2),
+              gradientTo: Offset.fromDirection(3.92),
+            ),
+          )
+        ]);
   }
 }

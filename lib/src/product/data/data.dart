@@ -30,5 +30,8 @@ class ProductData {
   }
 
   @override
-  String toString() => 'Tipo $type, P: $price, Q: $quantity';
+  String toString() =>
+      '${type.isEmpty ? '' : '($type)'} ' +
+      '${quantity == quantity.toInt() ? quantity.toInt() : quantity.toStringAsFixed(2)} ' +
+      '\u00d7 ${price.toStringAsFixed(2)}';
 }

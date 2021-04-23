@@ -6,4 +6,5 @@ export 'src/product/widget.dart';
 export 'src/shoppinglist/shoppinglist.dart';
 export 'src/shoppinglist/widget.dart';
 export 'src/shoppinglist/page.dart';
+export 'src/settings/page.dart';
 export 'src/stringmethods.dart';

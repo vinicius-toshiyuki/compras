@@ -36,5 +36,14 @@
 	"lists_title": "Shopping lists",
 	"nothing_to_see": "Nothing to see here",
 
-	"mergeTypesText": "This brand/type already exists. Merge duplicated brands/types?"
+	"mergeTypesText": "This brand/type already exists. Merge duplicated brands/types?",
+
+	"settings": "Settings",
+	"licenses": "Licenses",
+	"light": "Light",
+	"system": "System",
+	"dark": "Dark",
+
+	"share": "Share",
+	"shareText": "Copy the text to share"
 }

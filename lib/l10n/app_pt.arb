@@ -36,5 +36,14 @@
 	"lists_title": "Listas de compras",
 	"nothing_to_see": "Nada para ver aqui",
 
-	"mergeTypesText": "Esta marca/tipo já existe. Deseja juntar as marcas/tipos duplicados?"
+	"mergeTypesText": "Esta marca/tipo já existe. Deseja juntar as marcas/tipos duplicados?",
+
+	"settings": "Configurações",
+	"licenses": "Licenças",
+	"light": "Claro",
+	"system": "Sistema",
+	"dark": "Escuro",
+
+	"share": "Compartilhar",
+	"shareText": "Copie o texto para compartilhar"
 }
