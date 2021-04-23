@@ -235,10 +235,23 @@ class ShoppingListPageState extends State<ShoppingListPage>
                                           CrossAxisAlignment.end,
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        Text(loc.shareText),
+                                        Align(
+                                            alignment: Alignment.topCenter,
+                                            child: Text(
+                                              loc.shareText,
+                                              style: theme.textTheme.caption,
+                                            )),
                                         Container(
+                                          decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(4.0),
+                                              color: theme.colorScheme.onSurface
+                                                  .withOpacity(0.05)),
                                           height: 200,
-                                          padding: const EdgeInsets.all(8.0),
+                                          margin:
+                                              const EdgeInsets.only(top: 8.0),
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 8.0),
                                           child: Align(
                                             alignment: Alignment.topLeft,
                                             child: SingleChildScrollView(
