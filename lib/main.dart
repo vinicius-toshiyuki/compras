@@ -34,6 +34,7 @@ class _ComprasAppState extends State<ComprasApp> {
   final _windowSize = Size(350, 450);
 
   ThemeMode _brightness = ThemeMode.system;
+  Locale _locale = Locale.fromSubtags(languageCode: 'en');
 
   void updateTheme() {
     SharedPreferences.getInstance().then((prefs) async {
@@ -55,6 +56,22 @@ class _ComprasAppState extends State<ComprasApp> {
     });
   }
 
+  void updateLanguage() {
+    SharedPreferences.getInstance().then((prefs) async {
+      setState(() {
+        if (prefs.containsKey(SettingsPage.language)) {
+          final lang = prefs.getString(SettingsPage.language);
+          SettingsPage.languages.forEach((key, value) {
+            if (lang == value) {
+              var keys = key.split('_') + [''];
+              _locale = Locale(keys[0], keys[1]);
+            }
+          });
+        }
+      });
+    });
+  }
+
   @override
   void initState() {
     if (Platform.isLinux || Platform.isMacOS || Platform.isWindows) {
@@ -62,6 +79,7 @@ class _ComprasAppState extends State<ComprasApp> {
       DesktopWindow.setWindowSize(_windowSize.flipped * 2);
     }
     updateTheme();
+    updateLanguage();
     super.initState();
   }
 
@@ -78,6 +96,7 @@ class _ComprasAppState extends State<ComprasApp> {
         const Locale('pt'),
         const Locale('pt', 'BR'),
       ],
+      locale: _locale,
       theme: ThemeData(
         primarySwatch: Colors.cyan,
         textTheme: Typography.blackCupertino.apply(fontFamily: appFont),
@@ -242,6 +261,7 @@ class _ComprasHomePageState extends State<ComprasHomePage> {
                   )
                       .then((val) {
                     widget.app.updateTheme();
+                    widget.app.updateLanguage();
                   });
                 }),
           ),

@@ -221,94 +221,98 @@ class ShoppingListPageState extends State<ShoppingListPage>
                     icon: Icon(Icons.share),
                     onPressed: () {
                       final textData = _getListTextData();
-                      if (Platform.isIOS || Platform.isAndroid) {
-                        Share.share(textData, subject: list.value.title);
-                      } else {
-                        showDialog(
-                                context: context,
-                                builder: (context) {
-                                  return Dialog(
-                                      child: Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.end,
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Align(
-                                            alignment: Alignment.topCenter,
-                                            child: Text(
-                                              loc.shareText,
-                                              style: theme.textTheme.caption,
-                                            )),
-                                        Container(
-                                          decoration: BoxDecoration(
-                                              borderRadius:
-                                                  BorderRadius.circular(4.0),
-                                              color: theme.colorScheme.onSurface
-                                                  .withOpacity(0.05)),
-                                          height: 200,
-                                          margin:
-                                              const EdgeInsets.only(top: 8.0),
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 8.0),
-                                          child: Align(
-                                            alignment: Alignment.topLeft,
-                                            child: SingleChildScrollView(
-                                              child: Column(
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: [
-                                                  SelectableText.rich(
-                                                    TextSpan(
-                                                      text: list.value.title +
-                                                          '\n',
-                                                      style: theme
-                                                          .textTheme.headline6,
-                                                      children: [
-                                                        TextSpan(
-                                                            text: textData,
-                                                            style: theme
-                                                                .textTheme
-                                                                .bodyText2),
-                                                      ],
+                      if (textData.isNotEmpty) {
+                        if (Platform.isIOS || Platform.isAndroid) {
+                          Share.share(textData, subject: list.value.title);
+                        } else {
+                          showDialog(
+                                  context: context,
+                                  builder: (context) {
+                                    return Dialog(
+                                        child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.end,
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Align(
+                                              alignment: Alignment.topCenter,
+                                              child: Text(
+                                                loc.shareText,
+                                                style: theme.textTheme.caption,
+                                              )),
+                                          Container(
+                                            decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(4.0),
+                                                color: theme
+                                                    .colorScheme.onSurface
+                                                    .withOpacity(0.05)),
+                                            height: 200,
+                                            margin:
+                                                const EdgeInsets.only(top: 8.0),
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 8.0),
+                                            child: Align(
+                                              alignment: Alignment.topLeft,
+                                              child: SingleChildScrollView(
+                                                child: Column(
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  children: [
+                                                    SelectableText.rich(
+                                                      TextSpan(
+                                                        text: list.value.title +
+                                                            '\n',
+                                                        style: theme.textTheme
+                                                            .headline6,
+                                                        children: [
+                                                          TextSpan(
+                                                              text: textData,
+                                                              style: theme
+                                                                  .textTheme
+                                                                  .bodyText2),
+                                                        ],
+                                                      ),
                                                     ),
-                                                  ),
-                                                ],
+                                                  ],
+                                                ),
                                               ),
                                             ),
                                           ),
-                                        ),
-                                        // TODO: Os métodos não funcionam no desktop ainda
-                                        // ElevatedButton(
-                                        //     style: ButtonStyle(
-                                        //       backgroundColor:
-                                        //           MaterialStateProperty.all(
-                                        //               theme.colorScheme.secondary),
-                                        //     ),
-                                        //     onPressed: () {
-                                        //       Navigator.of(context).pop(true);
-                                        //     },
-                                        //     child: Text(loc.share,
-                                        //         style: theme.textTheme.button
-                                        //             .copyWith(
-                                        //                 color: theme.colorScheme
-                                        //                     .onSecondary)))
-                                      ],
-                                    ),
-                                  ));
-                                })
-                            // .then((value) {
-                            //   if (value == true) {
-                            //     // Share.share(textData, subject: list.value.title);
-                            //     var uri = Uri(scheme: 'mailto', queryParameters: {
-                            //       'subject': list.value.title,
-                            //       'body': textData,
-                            //     });
-                            //     print(uri.toString());
-                            //     launch(uri.toString());
-                            //   }
-                            // })
-                            ;
+                                          // TODO: Os métodos não funcionam no desktop ainda
+                                          // ElevatedButton(
+                                          //     style: ButtonStyle(
+                                          //       backgroundColor:
+                                          //           MaterialStateProperty.all(
+                                          //               theme.colorScheme.secondary),
+                                          //     ),
+                                          //     onPressed: () {
+                                          //       Navigator.of(context).pop(true);
+                                          //     },
+                                          //     child: Text(loc.share,
+                                          //         style: theme.textTheme.button
+                                          //             .copyWith(
+                                          //                 color: theme.colorScheme
+                                          //                     .onSecondary)))
+                                        ],
+                                      ),
+                                    ));
+                                  })
+                              // .then((value) {
+                              //   if (value == true) {
+                              //     // Share.share(textData, subject: list.value.title);
+                              //     var uri = Uri(scheme: 'mailto', queryParameters: {
+                              //       'subject': list.value.title,
+                              //       'body': textData,
+                              //     });
+                              //     print(uri.toString());
+                              //     launch(uri.toString());
+                              //   }
+                              // })
+                              ;
+                        }
                       }
                     }),
               )

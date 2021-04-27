@@ -9,6 +9,8 @@ class SettingsPage extends StatefulWidget {
   static const lightTheme = 'light';
   static const darkTheme = 'dark';
   static const systemTheme = 'system';
+  static const String language = 'language';
+  static const languages = {'pt_BR': 'Português', 'en': 'English', 'ja': '日本語'};
 
   @override
   _SettingsPageState createState() => _SettingsPageState();
@@ -21,21 +23,29 @@ class _SettingsPageState extends State<SettingsPage> {
     SettingsPage.systemTheme,
     SettingsPage.darkTheme
   ];
+
+  String _language;
+
   @override
   void initState() {
     _brightness = themes
         .map((theme) => theme == SettingsPage.systemTheme)
         .toList(growable: false);
+
     SharedPreferences.getInstance().then((prefs) {
       if (prefs.containsKey(SettingsPage.brightness)) {
         final themeMode = prefs.getString(SettingsPage.brightness);
+        final lang = prefs.getString(SettingsPage.language);
         setState(() {
           _brightness =
               themes.map((theme) => theme == themeMode).toList(growable: false);
+          if (prefs.containsKey(SettingsPage.language)) {
+            _language = lang;
+          }
         });
       }
-      print(_brightness);
     });
+
     super.initState();
   }
 
@@ -43,11 +53,19 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final loc = AppLocalizations.of(context);
+
+    if (SettingsPage.languages.containsKey(loc.localeName)) {
+      _language ??= SettingsPage.languages[loc.localeName];
+    } else {
+      _language ??= SettingsPage.languages['en'];
+    }
+
     return WillPopScope(
       onWillPop: () async {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString(
             SettingsPage.brightness, themes[_brightness.indexOf(true)]);
+        await prefs.setString(SettingsPage.language, _language);
         return true;
       },
       child: Scaffold(
@@ -93,6 +111,27 @@ class _SettingsPageState extends State<SettingsPage> {
                         _brightness[idx] = true;
                       });
                     }),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: DropdownButton(
+                    value: _language,
+                    icon: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Icon(Icons.language),
+                    ),
+                    items: SettingsPage.languages.values
+                        .map((String e) => DropdownMenuItem(
+                              child: Text(e),
+                              value: e,
+                            ))
+                        .toList(),
+                    onChanged: (item) {
+                      setState(() {
+                        _language = item;
+                      });
+                    },
+                  ),
+                ),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: TextButton(
