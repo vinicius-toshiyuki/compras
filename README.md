@@ -4,10 +4,9 @@
 [![compras](https://snapcraft.io/compras/badge.svg)](https://snapcraft.io/compras)
 
 [![Disponível na Snap Store](
-https://snapcraft.io/static/images/badges/pt/snap-store-white.svg =150x
-)](https://snapcraft.io/compras)
+https://snapcraft.io/static/images/badges/pt/snap-store-white.svg)](https://snapcraft.io/compras)
 
-![](img/logo_android.png =196x)
+<img src="img/logo_android.png" width=196px></img>
 
 É só para fazer lista de compras.
 
@@ -48,14 +47,14 @@ flutter build [ios|web|windows|macos]
 
 - [Source Sans Pro](https://fonts.google.com/specimen/Source+Sans+Pro)
 - [Kaushan Script](https://fonts.google.com/specimen/Kaushan+Script)
-
+<!--
 ### TODO
 
 - [x] Mudar o *buildDefaultDragHandles* da *ReorderableList*
 - [ ] Pegar as listas já ordenadas
 - [x] Tirar *currency* da *i10n*
 - [ ] Colocar o gráfico separado
-
+-->
 ## Licença
 
 [MIT License](./LICENSE)
