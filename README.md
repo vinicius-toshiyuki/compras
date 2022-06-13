@@ -8,11 +8,11 @@ https://snapcraft.io/static/images/badges/pt/snap-store-white.svg)](https://snap
 
 <img src="img/logo_android.png" width=196px></img>
 
-É só para fazer lista de compras.
+Just a shopping list app.
 
-## Compilação
+## Build
 
-### Preparo
+### Preparation
 
 ```bash
 flutter pub run flutter_launcher_icons:main
@@ -27,7 +27,7 @@ flutter build apk
 
 - Linux
 
-> Precisa do `sqlite3` instalado
+> Needs `sqlite3` installed
 
 ```bash
 flutter build linux
@@ -35,7 +35,7 @@ flutter build linux
 
 - IOS, Web, Windows e MacOS
 
-> Nunca testado. Sem Mac, sem build.
+> Never tested. No Mac, no build.
 
 ```bash
 cd compras
@@ -43,7 +43,7 @@ flutter create --platforms=ios,web,windows,macos .
 flutter build [ios|web|windows|macos]
 ```
 
-## Fontes
+## Fonts
 
 - [Source Sans Pro](https://fonts.google.com/specimen/Source+Sans+Pro)
 - [Kaushan Script](https://fonts.google.com/specimen/Kaushan+Script)
@@ -55,6 +55,6 @@ flutter build [ios|web|windows|macos]
 - [x] Tirar *currency* da *i10n*
 - [ ] Colocar o gráfico separado
 -->
-## Licença
+## License
 
 [MIT License](./LICENSE)
